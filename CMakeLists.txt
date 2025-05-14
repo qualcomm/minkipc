@@ -16,6 +16,9 @@ add_compile_options(
 
 add_subdirectory(libminkadaptor)
 
+add_subdirectory(qtee_supplicant)
+add_subdirectory(listeners/libdrmtime)
+
 if (BUILD_MINKTEEC)
 	add_subdirectory(libminkteec)
 endif()
