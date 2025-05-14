@@ -18,6 +18,7 @@ add_subdirectory(libminkadaptor)
 
 add_subdirectory(qtee_supplicant)
 add_subdirectory(listeners/libdrmtime)
+add_subdirectory(listeners/libtaautoload)
 
 if (BUILD_MINKTEEC)
 	add_subdirectory(libminkteec)

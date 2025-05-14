@@ -1,6 +1,7 @@
 // Copyright (c) 2025, Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
 
+#include <getopt.h>
 #include <pthread.h>
 #include <stdio.h>
 #include <string.h>
@@ -14,6 +15,12 @@
 #define GP_SAMPLE_WAIT_TEST 2
 #define TEMP_MEM_CHECK_PARAMS 20
 #define SHARED_MEM_CHECK_PARAMS 21
+
+static struct option testopts[] = {
+	{"preload", no_argument, NULL, 'l'},
+	{"autoload", no_argument, NULL, 'a'},
+	{NULL, 0, NULL, 0},
+};
 
 /* UUID for example_gpapp_ta_uuid */
 const TEEC_UUID example_gpapp_ta_uuid = { 0x11111111,
@@ -714,29 +721,79 @@ err_init_context:
 	return result;
 }
 
+static void usage(void)
+{
+	printf("\n\n---------------------------------------------------------\n"
+	       "Usage: gp_test_client -[OPTION] [PATH TO GP TAs]\n\n"
+	       "Runs basic Global Platform client tests.\n"
+	       "\n\n"
+	       "OPTION can be:\n"
+	       "  -l, Pre-load the Global Platform TAs from the specified location.\n"
+	       "      e.g. gp_test_client -l </path/to/gp_tas>\n\n"
+	       "  -a  Auto-load the Global Platform TAs from the default location.\n"
+	       "      e.g. gp_test_client -a\n\n\n");
+}
+
+static int parse_command(int argc, char *const argv[])
+{
+	int command = 0;
+	unsigned int ret = -1;
+
+	while ((command = getopt_long(argc, argv, "la", testopts, NULL)) !=
+		-1) {
+		switch (command) {
+		case 'l':
+			ret = 1;
+			break;
+		case 'a':
+			ret = 0;
+			break;
+		default:
+			usage();
+			break;
+		}
+	}
+
+	optind = 1;
+
+	return ret;
+}
+
 int main(int argc, char *argv[])
 {
 	int ret = 0;
 	TEEC_Result result = TEEC_SUCCESS;
+	int preload = 0;
 
 	if (argc < 2) {
-		printf("Error: No path provided to GP TA binary!\n");
+		usage();
 		return -1;
 	}
+
+	preload = parse_command(argc, argv);
+	if (preload == -1)
+		return ret;
 
 	/* Pre-load the GP TAs in-case TA autoload feature isn't available. */
-	ret = preload_gp_tas(argv[1]);
-	if (ret) {
-		printf("preload_gp_tas failed: %d", ret);
-		return -1;
+	if (preload) {
+		ret = preload_gp_tas(argv[2]);
+		if (ret) {
+			printf("preload_gp_tas failed: %d", ret);
+			return -1;
+		}
+	} else {
+		goto common_tests;
 	}
 
+	/* Add tests which depend on pre-loaded TAs here */
 	result = run_multiply_alloc_buffer_test();
 	if (result != TEEC_SUCCESS) {
 		printf("run_multiply_alloc_buffer_test failed: 0x%x\n", result);
 		ret = -1;
 		goto exit;
 	}
+
+common_tests:
 
 	result = run_compare_register_buffer_test();
 	if (result != TEEC_SUCCESS) {
@@ -792,7 +849,8 @@ int main(int argc, char *argv[])
 	}
 
 exit:
-	unload_gp_tas();
+	if (preload)
+		unload_gp_tas();
 
 	return ret;
 }

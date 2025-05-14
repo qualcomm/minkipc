@@ -13,6 +13,8 @@
 #define MSGE printf
 
 typedef int (*svc_init)(void);
+typedef int32_t (*svc_register)(Object root);
+typedef void (*svc_deregister)(void);
 
 /**
  * @brief Listener service.
@@ -28,6 +30,8 @@ struct listener_svc {
 	char *file_name; /**< File name of the listener service. */
 	void *lib_handle; /**< LibHandle for the listener. */
 	char *svc_init; /**< Listener service (opt) init callback. */
+	char *svc_register; /**< Listener service (opt) register callback. */
+	char *svc_deregister; /**< Listener service (opt) deregister callback. */
 	char *smci_dispatch; /**< Dispatch function of the listener. */
 	Object cbo; /**< Store cbo of listener service. */
 	Object mo; /**< Store memory object for this listener shared with QTEE. */
