@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.4)
-project(quic-teec-xts)
+project(minkipc)
 
 # Build Mink TEEC library
 option(BUILD_MINKTEEC "Build MinkTEEC" TRUE)
@@ -15,6 +15,10 @@ add_compile_options(
 )
 
 add_subdirectory(libminkadaptor)
+
+add_subdirectory(qtee_supplicant)
+add_subdirectory(listeners/libdrmtime)
+add_subdirectory(listeners/libtaautoload)
 
 if (BUILD_MINKTEEC)
 	add_subdirectory(libminkteec)

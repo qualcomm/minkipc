@@ -20,10 +20,10 @@ Before raising a pull-request, please read and follow this checklist:
 ## Submitting a pull request
 
 1. Please read our [Code of Conduct](CODE-OF-CONDUCT.md) and [License](LICENSE.txt) before contributing.
-1. [Fork](https://github.com/quic/minkipc/fork) and clone the repository.
+1. [Fork](https://github.com/qualcomm/minkipc/fork) and clone the repository.
     
     ```bash
-    git clone https://github.com/quic/minkipc.git
+    git clone https://github.com/qualcomm/minkipc.git
     ``` 
 
 1. Create a new branch based on `main`:
@@ -35,7 +35,7 @@ Before raising a pull-request, please read and follow this checklist:
 1. Create an upstream `remote` to make it easier to keep your branches up-to-date:
 
     ```bash
-    git remote add upstream https://github.com/quic/minkipc.git
+    git remote add upstream https://github.com/qualcomm/minkipc.git
     ```
 
 1. Make your changes and ensuring you follow the [Coding Style Guide](CODING-STYLE.md).
@@ -60,6 +60,6 @@ Before raising a pull-request, please read and follow this checklist:
 
     The `-u` is shorthand for `--set-upstream`. This will set up the tracking reference so subsequent runs of `git push` or `git pull` can omit the remote and branch.
 
-1. [Submit a pull request](https://github.com/quic/minkipc/pulls) from your branch to `main`.
+1. [Submit a pull request](https://github.com/qualcomm/minkipc/pulls) from your branch to `main`.
 1. Pat yourself on the back and wait for your pull request to be reviewed.
 1. Participate in the code review to catch issues early and ensure quality.

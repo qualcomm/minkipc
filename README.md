@@ -37,7 +37,7 @@ Read more about QCOMTEE [here](https://github.com/quic/quic-teec).
 
 ## Build Instructions
 ```
-git clone https://github.com/quic/minkipc.git
+git clone https://github.com/qualcomm/minkipc.git
 cd minkipc
 mkdir build
 cd build
