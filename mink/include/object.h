@@ -43,7 +43,7 @@ typedef uint32_t ObjectOp;
 #define ObjectOp_METHOD_USERMAX  ((ObjectOp) 0x00003FFF)
 
 /**
- * @def ObjectOp_METHOD_USERMAX
+ * @def ObjectOp_MODIFIER_MASK
  * @brief Modifier bits are reserved for transport-layer semantics.
  */
 #define ObjectOp_MODIFIER_MASK   ((ObjectOp) 0xFFFF0000u)
@@ -67,18 +67,6 @@ typedef uint32_t ObjectOp;
  * @brief Check if the operation being invoked is local.
  */
 #define ObjectOp_isLocal(op)     (((op) & ObjectOp_LOCAL) != 0)
-
-/**
- * @def Object_OP_release
- * @brief An operation to release the object.
- */
-#define Object_OP_release       (ObjectOp_METHOD_MASK - 0)
-
-/**
- * @def Object_OP_retain
- * @brief An operation to retain the object.
- */
-#define Object_OP_retain        (ObjectOp_METHOD_MASK - 1)
 
 /** @} */ // end of ObjectOperations
 
@@ -236,17 +224,17 @@ typedef void *ObjectCxt;
  * @brief A function pointer which invokes an operation on an Object.
  */
 typedef int32_t (*ObjectInvoke)(ObjectCxt h,
-				ObjectOp op,
-				ObjectArg *args,
-				ObjectCounts counts);
+                                ObjectOp op,
+                                ObjectArg *args,
+                                ObjectCounts counts);
 
 /**
  * @def Object
  * @brief An object with a context and invoke function pointer.
  */
 struct Object {
-	ObjectInvoke invoke;
-	ObjectCxt context;    /**< context data to pass to the invoke function. */
+    ObjectInvoke invoke;
+    ObjectCxt context;    /**< context data to pass to the invoke function. */
 };
 
 /**
@@ -256,10 +244,10 @@ struct Object {
  *        environments.
  */
 struct Object64 {
-	ObjectInvoke invoke_l;
-	ObjectInvoke invoke_h;
-	ObjectCxt context_l;    /**< context data to pass to the invoke function. */
-	ObjectCxt context_h;    /**< context data to pass to the invoke function. */
+    ObjectInvoke invoke_l;
+    ObjectInvoke invoke_h;
+    ObjectCxt context_l;    /**< context data to pass to the invoke function. */
+    ObjectCxt context_h;    /**< context data to pass to the invoke function. */
 };
 
 /**
@@ -268,8 +256,8 @@ struct Object64 {
  * are copied back and forth into a shared buffer.
  */
 struct ObjectBuf {
-	void *ptr;
-	size_t size;
+    void *ptr;
+    size_t size;
 };
 
 /**
@@ -279,10 +267,10 @@ struct ObjectBuf {
  * between 32 bit and 64 bit environments.
  */
 struct ObjectBuf64 {
-	void  *ptr_l;
-	void  *ptr_h;
-	size_t size_l;
-	size_t size_h;
+    void  *ptr_l;
+    void  *ptr_h;
+    size_t size_l;
+    size_t size_h;
 };
 
 /**
@@ -290,8 +278,8 @@ struct ObjectBuf64 {
  * @brief An Object Buffer marked as Input.
  */
 struct ObjectBufIn {
-	const void *ptr;
-	size_t size;
+    const void *ptr;
+    size_t size;
 };
 
 /**
@@ -299,9 +287,9 @@ struct ObjectBufIn {
  * @brief An argument passed to an object during invocation.
  */
 union ObjectArg {
-	ObjectBuf b;
-	ObjectBufIn bi;
-	Object o;
+    ObjectBuf b;
+    ObjectBufIn bi;
+    Object o;
 };
 
 /**
@@ -311,8 +299,8 @@ union ObjectArg {
  *        environments.
  */
 union ObjectArg64 {
-	ObjectBuf64 b;
-	Object64    o;
+    ObjectBuf64 b;
+    Object64    o;
 };
 
 /**
@@ -322,7 +310,7 @@ union ObjectArg64 {
  */
 static inline int32_t Object_invoke(Object o, ObjectOp op, ObjectArg *args, ObjectCounts k)
 {
-	return o.invoke(o.context, op, args, k);
+    return o.invoke(o.context, op, args, k);
 }
 
 /**
@@ -522,6 +510,25 @@ static inline int32_t Object_invoke(Object o, ObjectOp op, ObjectArg *args, Obje
 
 /** @} */ // end of ObjectErr
 
+/**
+ * @def Object_OP_release
+ * @brief An operation to release the object.
+ */
+#define Object_OP_release       (ObjectOp_METHOD_MASK - 0)
+
+/**
+ * @def Object_OP_retain
+ * @brief An operation to retain the object.
+ */
+#define Object_OP_retain        (ObjectOp_METHOD_MASK - 1)
+#define Object_OP_unwrapFd      (ObjectOp_METHOD_MASK - 2)
+
+static inline int32_t Object_unwrapFd(Object o, int* pFd) {
+  ObjectArg a[1] = {{{0,0}}};
+  a[0].b = (ObjectBuf) { pFd, sizeof(int) * 1 };
+  return Object_invoke((o), Object_OP_unwrapFd, a, ObjectCounts_pack(0, 1, 0, 0));
+}
+
 /* ''OBJECT UTILITIES'' */
 
 /**
@@ -584,13 +591,13 @@ static inline int32_t Object_retain(Object o) {
  */
 static inline void Object_replace(Object *loc, Object objNew)
 {
-	if (!Object_isNull(*loc)) {
-		Object_release(*loc);
-	}
-	if (!Object_isNull(objNew)) {
-		Object_retain(objNew);
-	}
-	*loc = objNew;
+    if (!Object_isNull(*loc)) {
+        Object_release(*loc);
+    }
+    if (!Object_isNull(objNew)) {
+        Object_retain(objNew);
+    }
+    *loc = objNew;
 }
 
 /**

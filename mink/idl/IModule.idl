@@ -1,0 +1,42 @@
+// Copyright (c) 2015 Qualcomm Technologies, Inc.
+// All Rights Reserved.
+// Confidential and Proprietary - Qualcomm Technologies, Inc.
+
+// IModule.idl
+//
+// This interface requests objects from modules.
+/** @cond */
+interface IModule {
+/** @endcond */
+
+  /**
+   * @addtogroup IModule
+   * @{
+   */
+
+  /** @cond */
+  error ERROR_NOT_FOUND;
+  /** @endcond */
+
+  /**
+    Requests an instance object.
+
+    @param[in]  id           Class ID.
+    @param[in]  credentials  An object describing the credentials used to
+                             request the object.
+    @param[out] obj          An instance of the requested class.
+
+    @return
+    Object_OK if successful.
+   */
+   method open(in uint32 id, in interface credentials, out interface obj);
+
+  /**
+    Shuts down an instance object.
+
+    @return
+    Object_OK if successful.
+  */
+  method shutdown();
+  /* @} */ /* end_addtogroup IModule */
+};

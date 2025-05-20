@@ -1,0 +1,42 @@
+/** @file  ISampleService.idl */
+
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// All rights reserved.
+// Confidential and Proprietary - Qualcomm Technologies, Inc.
+
+/**
+  A sample APP.
+*/
+
+// include "IMemObject.idl"
+
+/** @cond */
+interface ISampleService {
+/** @endcond */
+
+  /**
+   * @addtogroup ISampleService
+   * @{
+   */
+
+  // /*
+  //  * Error codes
+  //  */
+  // /** @cond */
+  // error ERROR_INVALID_BUFFER;                     /**< Buffer is invalid */
+  // error ERROR_PROC_NOT_LOADED;                    /**< No loaded TP with distinguished name */
+  // /** @endcond */
+
+  method printHello();
+  // method getDMABuf();
+  // method callQTEETA();
+  // method callQTEEKernelService();
+  // method shareMemory(in IMemObject memObj);
+  // method loadQTEETA(in IMemObject appFileObj);
+  // method shareMemWithQTEETA(in uint32 uid);
+  // method acquireWakeLock(in uint32 uid);
+  // method releaseWakeLock();
+  method releaseConnection();
+
+  /** @} */ /* end_addtogroup ISampleService */
+};

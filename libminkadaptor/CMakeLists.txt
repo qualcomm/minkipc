@@ -60,6 +60,7 @@ target_include_directories(minkadaptor
 )
 
 target_link_libraries(minkadaptor
+	PRIVATE MinkHeaders
 	PRIVATE ${QCOMTEE_LIBRARIES}
 	PRIVATE ${CMAKE_THREAD_LIBS_INIT}
 )

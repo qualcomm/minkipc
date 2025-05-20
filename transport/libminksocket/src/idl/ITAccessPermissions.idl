@@ -1,0 +1,76 @@
+/** @file ITAccessPermissions.idl */
+
+// Copyright (c) 2023 Qualcomm Technologies, Inc.
+// All Rights Reserved.
+// Confidential and Proprietary - Qualcomm Technologies, Inc.
+
+// include "ICredentials.idl"
+
+/**
+  ITAccessPermissions provides definition of data structures for confinement.
+*/
+
+// ITAccessPermissions are optional and only required
+//   when memory must be confined to specific users only.
+
+/**
+ * @addtogroup ITAccessPermissions
+ * @{
+ */
+
+/** @cond */
+
+struct ITAccessPermissions_uidBasedPerms {
+   uint64 uid;
+   /**< Unique ID of the process that can have access to this memory Pool */
+   uint64 perms;
+   /**< R/W permissions */
+};
+
+struct ITAccessPermissions_didBasedPerms {
+   uint64 did;
+   /**< Distinguished ID of the process that can have access to this memory Pool */
+   uint64 perms;
+   /**< R/W permissions */
+};
+
+// struct ITAccessPermissions_credsBasedPerms {
+   // ICredentials credentials;
+   /**< credentials of the process that can have access to this memory Pool */
+   // uint64 perms;
+   /**< R/W permissions */
+// };
+
+/* Available specialRules are defined as below */
+
+// This is assumed by default and clients don't have to explicitly pass this.
+const uint64 ITAccessPermissions_keepSelfAccess = 0;
+
+// This is only applicable when sharing memory between PVM and QTVM.
+// We will return error if this flag is passed for local allocation within QTVM.
+const uint64 ITAccessPermissions_removeSelfAccess = 1;
+
+// This specialRules is especially for CSF 2.5
+const uint64 ITAccessPermissions_smmuProxyControlled = 2;
+
+// This specialRules indicates that:
+// 1. HLOS is lending memory to both QTVM and OEMVM by SMMU Proxy.
+// 2. In OEMVM: memory will be accepted by mem-buf.
+//    In QTVM: memory will be accepted by SMMU Proxy.
+// 3. OEMVM can share the memory with QTVM further.
+const uint64 ITAccessPermissions_mixedControlled = 4;
+
+// This specialRules is especially for "qcom,display" RemoteAllocDmabuf
+const uint64 ITAccessPermissions_qcomDisplayDmabuf = 8;
+
+/** ITAccessPermissions are list of permission rules associated/applied to a
+    memory object allocated from this pool of memory. */
+struct ITAccessPermissions_rules {
+   ITAccessPermissions_uidBasedPerms[5] uidPermsList;
+   ITAccessPermissions_didBasedPerms[5] didPermsList;
+   // ITAccessPermissions_credsBasedPerms[5] credsPermsList;
+   uint64 specialRules;
+};
+/** @endcond */
+/** @} */ /* end_addtogroup ITAccessPermissions */
+
