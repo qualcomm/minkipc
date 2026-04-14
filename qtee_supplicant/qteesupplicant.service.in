@@ -2,8 +2,8 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 [Unit]
 Description=QTEE Supplicant Service
-BindsTo=dev-tee0.device
-After=dev-tee0.device sfsconfig.service
+ConditionPathExists=/dev/tee0
+After=sfsconfig.service
 
 [Service]
 Type=exec
