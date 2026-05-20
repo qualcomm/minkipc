@@ -31,7 +31,7 @@ on:
 
     outputs:
       build_matrix:
-        description: The build arguments
+        description: The build arguments matrix
         value: ${{ jobs.loading.outputs.build_matrix }}
 
 jobs:
