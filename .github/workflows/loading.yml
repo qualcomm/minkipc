@@ -49,6 +49,6 @@ jobs:
           pr_repo: ${{ inputs.pr_repo }}
           base_ref: ${{ inputs.base_ref }}
 
-      - name: Load Parameters
+      - name: Load Parameters to build
         id: loading
         uses: qualcomm/minkipc/.github/actions/loading@main
