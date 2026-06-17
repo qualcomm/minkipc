@@ -67,6 +67,7 @@ set_target_properties(taautoload PROPERTIES
 target_include_directories(taautoload
 	PRIVATE idl
 	PRIVATE src
+	PRIVATE ${CMAKE_SOURCE_DIR}/listeners/listenercbo/include
 )
 
 target_link_libraries(taautoload

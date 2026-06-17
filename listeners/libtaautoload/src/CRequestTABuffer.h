@@ -9,6 +9,15 @@
 #include <stdint.h>
 #include <string>
 
+/* qlist.h defines container_of using void* pointer arithmetic, a GNU C
+ * extension that is ill-formed in C++ and rejected here by -Werror=pointer-arith.
+ * Override it with a char*-based definition, which is well-defined in C++. */
+#ifndef container_of
+#define container_of(ptr, type, member) \
+	((type *)((char *)(ptr) - offsetof(type, member)))
+#endif
+#include "qlist.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -21,6 +30,7 @@ typedef struct
 {
   std::list<std::string> searchLocations;
   Object rootObj;
+  QList memObjList;
   int refs;
 } CRequestTABuffer;
 

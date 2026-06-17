@@ -6,6 +6,8 @@
 
 #include "mink_adaptor_priv.h"
 #include "supplicant.h"
+#include "IRequestTABuffer_invoke.h"
+#include "IRequestTABuffer.h"
 
 #include "MinkCom.h"
 
@@ -305,6 +307,7 @@ static void qcomtee_callback_obj_cleanup(struct qcomtee_object *object, int err)
 	struct qcomtee_callback_obj *qcomtee_cbo = CALLBACKOBJ(object);
 	uint32_t i = 0;
 
+	IRequestTABuffer_cleanup(qcomtee_cbo->mink_obj);
 	for (i = 0; i < ObjectCounts_maxBO; i++) {
 		if (qcomtee_cbo->allocated_bo[i])
 			free(qcomtee_cbo->allocated_bo[i]);
