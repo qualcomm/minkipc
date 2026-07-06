@@ -382,7 +382,7 @@ jobs:
         run: |
           set -euxo pipefail
           echo "=========================================="
-          echo "Building 32-bit MINKIPC"
+          echo "Building 32-bit MINKIPC Compilation"
           echo "=========================================="
           # Make script executable
           chmod +x ci/build32.sh
