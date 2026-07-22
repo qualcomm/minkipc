@@ -19,7 +19,6 @@ typedef union
   Elf32_Ehdr Elf32;
   Elf64_Ehdr Elf64;
 } ElfHdr;
-ElfHdr *pElfHdr;
 
 /**
  * @brief Create TA Buffer from TA Image file
@@ -69,6 +68,10 @@ bool TAImageReader::ReadSplitBinsToBuf(string &path, Object rootObj)
   vector<size_t> offset;
   Elf64_Phdr phdr64;
   Elf32_Phdr phdr32;
+  /* View into imageBuffer; kept function-local so its lifetime is bound to
+   * that local vector (whose heap storage is freed on return) and is never
+   * shared across calls. Re-point it after any imageBuffer reallocation. */
+  ElfHdr *pElfHdr = nullptr;
 
   /* for each of the remaining segments, read into buffer at offset[seg] */
   size_t pathLen = path.length();
@@ -97,17 +100,16 @@ bool TAImageReader::ReadSplitBinsToBuf(string &path, Object rootObj)
   imageBuffer.assign((istreambuf_iterator<char>(mImageFile)), istreambuf_iterator<char>());
 
 
-  pElfHdr = (ElfHdr*) (void*) (imageBuffer.data());
-  offset.resize(pElfHdr->Elf64.e_phnum);
-
-  /* Examine buffer's contents as an elf file, check segment count
-   * and get offsets of remaining segments
-   */
+  /* Examine buffer's contents as an elf file. Validate the buffer is large
+   * enough to hold an ELF header BEFORE dereferencing it as one. */
   if (imageBuffer.size() < sizeof(ElfHdr))
   {
     MSGE("ReadSplitBinsToBuf buffer->size()=%zu\n", imageBuffer.size());
     goto ERROR_HANDLE;
   }
+
+  pElfHdr = (ElfHdr*) (void*) (imageBuffer.data());
+  offset.resize(pElfHdr->Elf64.e_phnum);
 
   switch (pElfHdr->Elf32.e_ident[EI_CLASS])
   {
@@ -115,7 +117,7 @@ bool TAImageReader::ReadSplitBinsToBuf(string &path, Object rootObj)
     case ELFCLASS64:  is64 = true; break;
     default:
       MSGE("Unknown File Type\n");
-      return false;
+      goto ERROR_HANDLE;
   }
 
   if (is64)
