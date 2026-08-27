@@ -4,6 +4,9 @@ project(minkipc)
 # Build Mink TEEC library
 option(BUILD_MINKTEEC "Build MinkTEEC" TRUE)
 
+# Let MinkTEEC talk to libqcomtee directly instead of going through libminkadaptor
+option(MINKTEEC_DIRECT_QCOMTEE "Build MinkTEEC directly on top of libqcomtee" FALSE)
+
 option(BUILD_UNITTEST "Build unittest" FALSE)
 
 # Build Time listener

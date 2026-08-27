@@ -1,0 +1,20 @@
+// Copyright (c) 2025, Qualcomm Innovation Center, Inc. All rights reserved.
+// SPDX-License-Identifier: BSD-3-Clause
+
+#ifndef __MINKTEEC_CONFIG_H_
+#define __MINKTEEC_CONFIG_H_
+
+/* Backend selection, frozen at configure time.
+ *
+ * 1: libminkteec talks to libqcomtee directly.
+ * 0: libminkteec goes through libminkadaptor (the MINK Object layer).
+ *
+ * The value selects the layout of TEEC_Context, TEEC_Session and
+ * TEEC_SharedMemory, so every consumer of tee_client_api.h must observe the
+ * same value the library was built with. Passing it on the command line with
+ * -D is therefore not sufficient: it is baked into this header, which is
+ * installed next to tee_client_api.h.
+ */
+#define MINKTEEC_DIRECT_QCOMTEE @MINKTEEC_DIRECT_QCOMTEE_VALUE@
+
+#endif // __MINKTEEC_CONFIG_H_
