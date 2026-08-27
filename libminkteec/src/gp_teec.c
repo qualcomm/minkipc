@@ -727,3 +727,60 @@ void release_shared_memory(TEEC_SharedMemory *shm)
 	shm->imp.type = TEEC_MEMORY_FREE;
 	shm->imp.ctx = NULL;
 }
+
+void close_session(TEEC_Session *session)
+{
+	if (!session)
+		return;
+
+	/* IGPSession.close is deliberately not invoked. Tearing the session
+	 * down is driven purely by the session object's reference count
+	 * dropping to zero, which QTEE observes on its own; sending an explicit
+	 * close on top of that would deliver a second teardown to the trusted
+	 * application, a behaviour change rather than an optimization.
+	 *
+	 * The release has to tolerate a NULL handle: open_session() nulls the
+	 * session object when the trusted application refuses the session, and
+	 * the caller may still close afterwards.
+	 */
+	TEEC_OBJ_RELEASE(session->imp.session_obj);
+	session->imp.ctx = NULL;
+}
+
+void request_cancellation(TEEC_Operation *op)
+{
+	TEEC_Session *session = NULL;
+	TEEC_Context *ctx = NULL;
+	teec_obj_t waiter_cbo = TEEC_OBJ_NULL;
+
+	/* The waiter lives on the context, which is only reachable through the
+	 * session, so both links are checked before either is followed.
+	 */
+	if (!op || !op->imp.session)
+		return;
+
+	session = op->imp.session;
+	ctx = session->imp.ctx;
+	if (!ctx)
+		return;
+
+	waiter_cbo = ctx->imp.waiter_cbo;
+
+	if (TEEC_OBJ_IS_NULL(waiter_cbo)) {
+		MSGE("Waiter CBO not available!\n");
+		return;
+	}
+
+	/* The waiter is this process's own object, so the signal is a direct
+	 * call: the three layers the old path went through, IWait_signal
+	 * packing, Object_invoke dispatching and IWait_invoke unpacking, all
+	 * disappear.
+	 *
+	 * The cancel code goes out raw. CANCEL_CODE_MASK is applied where the
+	 * code is generated, not where it is delivered; masking again would be
+	 * a no-op today but would silently stop matching QTEE's code should the
+	 * generated range ever widen, and cancellation would just quietly fail.
+	 */
+	cwait_signal(CWAIT_OF(waiter_cbo), op->imp.cancel_code,
+		     MINK_EVENT_CANCEL);
+}
