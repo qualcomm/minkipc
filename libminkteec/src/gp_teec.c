@@ -457,3 +457,120 @@ TEEC_Result open_session(TEEC_Context *ctx, TEEC_Session *session,
 
 	return result;
 }
+
+/**
+ * @brief Issue an IGPSession.invokeCommand request.
+ *
+ * Three of mink_wire_invoke()'s slots do not exist here: the destination UUID,
+ * the cancellation waiter and the output session object, all of which are
+ * openSession specific and are therefore switched off with -1.
+ *
+ * @param session_obj The session to invoke the command on.
+ * @param command_id Identifier of the command to invoke.
+ * @param call The translated parameters and the three type/code words.
+ * @param eorigin Receives the GP origin.
+ * @return The GP result code: what QTEE returned for the method when it ran it,
+ *         otherwise the mapping of the failure that kept it from running.
+ */
+static TEEC_Result mink_invoke_command_invoke(teec_obj_t session_obj,
+					    uint32_t command_id,
+					    const struct mink_call *call,
+					    uint32_t *eorigin)
+{
+	struct ic_in in = {
+		.cmd_id = command_id,
+		.cancel_code = call->cancel_code,
+		/* Not exposed to GP callers today, so the wire value is the
+		 * constant the existing backend passes rather than a new
+		 * configuration knob.
+		 */
+		.timeout = MINK_TEEC_TIMEOUT_INFINITE,
+		.param_types = call->param_types,
+		.ex_param_types = call->ex_param_types,
+	};
+	struct mink_out_scalars out = { 0 };
+	qcomtee_result_t rv = QCOMTEE_OK;
+	TEEC_Result result = TEEC_SUCCESS;
+
+	if (mink_wire_invoke(session_obj, MINK_OP_INVOKE_COMMAND, IC_SLOT_COUNT, -1,
+			   NULL, 0, IC_BI_SCALARS, &in, sizeof(in),
+			   IC_BI_PARAM0, IC_BO_SCALARS, &out, IC_BO_PARAM0, -1,
+			   TEEC_OBJ_NULL, IC_OI_MEM0, call->param, -1, NULL,
+			   &rv)) {
+		map_err(QCOMTEE_ERROR, &result, eorigin);
+		/* Bit-faithful to mink_invoke_command(), which follows the very
+		 * same table with an unconditional override of the origin and
+		 * so reports TEEC_ORIGIN_TEE even for the generic branch that
+		 * just set TEEC_ORIGIN_COMMS. mink_open_session() has no such
+		 * override. Replicated rather than corrected, to keep xtest
+		 * results identical; whether it is a typo is tracked
+		 * separately.
+		 */
+		*eorigin = TEEC_ORIGIN_TEE;
+
+		return result;
+	}
+
+	if (rv) {
+		map_err(rv, &result, eorigin);
+		*eorigin = TEEC_ORIGIN_TEE;
+
+		return result;
+	}
+
+	*eorigin = out.ret_origin;
+
+	return out.ret_value;
+}
+
+TEEC_Result invoke_command(TEEC_Session *session, uint32_t command_id,
+			   TEEC_Operation *op, uint32_t *ret_origin)
+{
+	struct mink_call call = { 0 };
+	TEEC_Result result = TEEC_SUCCESS;
+	uint32_t eorigin = TEEC_ORIGIN_COMMS;
+
+	/* The context is only reached through the session, so a session that
+	 * never came out of a successful open_session() is caught here rather
+	 * than inside memref_temp_to_partial_params().
+	 */
+	if (!session || !session->imp.ctx)
+		return TEEC_ERROR_BAD_PARAMETERS;
+
+	if (ret_origin)
+		*ret_origin = TEEC_ORIGIN_COMMS;
+
+	mink_params_INIT(call.param);
+
+	if (op) {
+		call.cancel_code = (rand() & CANCEL_CODE_MASK);
+		op->imp.cancel_code = call.cancel_code;
+		op->imp.session = session;
+
+		/* The result is dropped on purpose: this is the one place the
+		 * existing backend differs from open_session(), which does
+		 * return early on a conversion failure. Replicated as is.
+		 */
+		memref_temp_to_partial_params(session->imp.ctx,
+					      &(op->paramTypes), op->params);
+
+		mink_params_from_teec_params(op->paramTypes, op->params,
+					   call.param, &call.ex_param_types);
+		tee_types_from_teec_types(op, &call.param_types);
+	}
+
+	result = mink_invoke_command_invoke(session->imp.session_obj, command_id,
+					  &call, &eorigin);
+	if (result)
+		MSGE("mink_invoke_command_invoke() failed: 0x%x\n", result);
+
+	if (ret_origin)
+		*ret_origin = eorigin;
+
+	if (op) {
+		update_shm_memref_from_mem_obj(op->paramTypes, op->params);
+		memref_temp_from_partial_params(&(op->paramTypes), op->params);
+	}
+
+	return result;
+}
