@@ -574,3 +574,156 @@ TEEC_Result invoke_command(TEEC_Session *session, uint32_t command_id,
 
 	return result;
 }
+
+/**
+ * @brief Create a memory object to back a shared memory block.
+ *
+ * Replaces MinkCom_getMemoryObject, whose two object conversions are gone here:
+ * ctx->imp.root_obj already is the type libqcomtee wants, and so is the object
+ * it produces.
+ *
+ * @param ctx The context whose root the object is to belong to.
+ * @param size Size of the memory to back the object with.
+ * @param out Receives the memory object, owned by the caller.
+ * @return TEEC_SUCCESS on success, TEEC_ERROR_* on failure.
+ */
+static TEEC_Result mink_obj_mem_alloc(TEEC_Context *ctx, size_t size,
+				    teec_obj_t *out)
+{
+	struct qcomtee_object *mo = TEEC_OBJ_NULL;
+
+	/* Stands in for the !root check MinkCom_getMemoryObject performs. */
+	if (!ctx || TEEC_OBJ_IS_NULL(ctx->imp.root_obj))
+		return TEEC_ERROR_BAD_PARAMETERS;
+
+	/* TEEC_ERROR_GENERIC rather than TEEC_ERROR_OUT_OF_MEMORY: the
+	 * allocation failure is only one of the reasons libqcomtee reports
+	 * here, and both call sites used to flatten this path to GENERIC.
+	 */
+	if (qcomtee_memory_object_alloc(size, ctx->imp.root_obj, &mo))
+		return TEEC_ERROR_GENERIC;
+
+	*out = mo;
+
+	return TEEC_SUCCESS;
+}
+
+int mink_obj_mem_info(teec_obj_t mem_obj, void **addr, size_t *size)
+{
+	/* The type check keeps a non-memory object from being read as one; it
+	 * is an explicit defence of the existing implementation, not an
+	 * accident, so it is kept. qcomtee_object_typeof() is NULL safe, but
+	 * the explicit test documents that a NULL handle is expected here:
+	 * every shared memory at or below TEEC_SHM_MAX_HEAP_SZ has one.
+	 */
+	if (TEEC_OBJ_IS_NULL(mem_obj) ||
+	    qcomtee_object_typeof(mem_obj) != QCOMTEE_OBJECT_TYPE_MEMORY)
+		return -1;
+
+	*addr = qcomtee_memory_object_addr(mem_obj);
+	*size = qcomtee_memory_object_size(mem_obj);
+
+	return (*addr && *size) ? 0 : -1;
+}
+
+TEEC_Result register_shared_memory(TEEC_Context *ctx, TEEC_SharedMemory *shm,
+				   uint8_t convert)
+{
+	teec_obj_t mo = TEEC_OBJ_NULL;
+	TEEC_Result result = TEEC_SUCCESS;
+
+	if (!ctx || !shm)
+		return TEEC_ERROR_BAD_PARAMETERS;
+
+	/* Only large buffers are backed by a memory object; anything at or
+	 * below the threshold travels as a plain input/output buffer and
+	 * occupies no object slot. The threshold is local policy, not wire
+	 * ABI, and is left where it is.
+	 */
+	if (shm->size > TEEC_SHM_MAX_HEAP_SZ) {
+		result = mink_obj_mem_alloc(ctx, shm->size, &mo);
+		if (result)
+			return result;
+	}
+
+	/* shm->buffer is deliberately untouched: a registered memory's buffer
+	 * belongs to the client application.
+	 */
+	shm->imp.type = TEEC_MEMORY_REGISTERED;
+	shm->imp.converted = convert;
+	shm->imp.mem_obj = mo;
+	shm->imp.ctx = ctx;
+
+	return TEEC_SUCCESS;
+}
+
+TEEC_Result allocate_shared_memory(TEEC_Context *ctx, TEEC_SharedMemory *shm)
+{
+	teec_obj_t mo = TEEC_OBJ_NULL;
+	TEEC_Result result = TEEC_SUCCESS;
+	/* The object is page aligned, so this comes back larger than the
+	 * requested size. It is a local upper bound only: shm->size keeps the
+	 * value the caller asked for, as GP requires.
+	 */
+	size_t mo_size = 0;
+
+	if (!ctx || !shm)
+		return TEEC_ERROR_BAD_PARAMETERS;
+
+	if (shm->size > TEEC_SHM_MAX_HEAP_SZ) {
+		result = mink_obj_mem_alloc(ctx, shm->size, &mo);
+		if (result)
+			return result;
+
+		if (mink_obj_mem_info(mo, &shm->buffer, &mo_size)) {
+			/* Without this the object and its mapping both leak. */
+			qcomtee_memory_object_release(mo);
+
+			return TEEC_ERROR_GENERIC;
+		}
+	} else {
+		shm->buffer = malloc(shm->size);
+		if (!shm->buffer)
+			return TEEC_ERROR_OUT_OF_MEMORY;
+	}
+
+	/* Note that imp.converted is left alone: register_shared_memory() is
+	 * the only entry point that sets it.
+	 */
+	shm->imp.type = TEEC_MEMORY_ALLOCATED;
+	shm->imp.mem_obj = mo;
+	shm->imp.ctx = ctx;
+
+	return TEEC_SUCCESS;
+}
+
+void release_shared_memory(TEEC_SharedMemory *shm)
+{
+	if (!shm)
+		return;
+
+	/* The order of the two steps below is load bearing. For an allocated
+	 * block above the threshold shm->buffer points into the memory
+	 * object's mapping, which is unmapped the moment the last reference
+	 * goes; clearing the fields first is what keeps a dangling pointer
+	 * from being left behind.
+	 *
+	 * For the same reason the size test has to happen before shm->size is
+	 * cleared: reversing the two would send every large buffer into
+	 * free(), which is undefined on a mapping.
+	 */
+	if (shm->imp.type == TEEC_MEMORY_ALLOCATED) {
+		if (shm->size <= TEEC_SHM_MAX_HEAP_SZ)
+			free(shm->buffer);
+
+		shm->buffer = NULL;
+		shm->size = 0;
+	}
+
+	/* A no-op when the block had no backing object. */
+	TEEC_OBJ_RELEASE(shm->imp.mem_obj);
+
+	shm->imp.converted = 0;
+	shm->imp.type = TEEC_MEMORY_FREE;
+	shm->imp.ctx = NULL;
+}
