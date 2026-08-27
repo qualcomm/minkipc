@@ -73,6 +73,7 @@ add_custom_target(
 
 set(SRC
 	src/tee_client_api.c
+	src/mink_params.c
 	src/mink_teec.c
 	src/CWait.c
 )
