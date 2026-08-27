@@ -197,7 +197,7 @@ TEEC_Result initialize_context(TEEC_Context *ctx)
 	struct qcomtee_object *client_env = TEEC_OBJ_NULL;
 	struct qcomtee_param p[2] = { 0 };
 	qcomtee_result_t result = QCOMTEE_OK;
-	uint32_t uid = GP_CGPAPPCLIENT_UID;
+	uint32_t uid = MINK_CGPAPPCLIENT_UID;
 
 	if (!ctx)
 		return TEEC_ERROR_BAD_PARAMETERS;
@@ -230,7 +230,7 @@ TEEC_Result initialize_context(TEEC_Context *ctx)
 	p[0].object = creds;
 	OBJ_OUT(p[1]);
 
-	if (qcomtee_object_invoke(ctx->imp.root_obj, GP_OP_REGISTER_AS_CLIENT,
+	if (qcomtee_object_invoke(ctx->imp.root_obj, MINK_OP_REGISTER_AS_CLIENT,
 				  p, 2, &result)) {
 		qcomtee_object_refs_dec(creds);
 		goto err_root;
@@ -244,7 +244,7 @@ TEEC_Result initialize_context(TEEC_Context *ctx)
 	UBUF_IN(p[0], &uid, sizeof(uid));
 	OBJ_OUT(p[1]);
 
-	if (qcomtee_object_invoke(client_env, GP_OP_CLIENT_ENV_OPEN, p, 2,
+	if (qcomtee_object_invoke(client_env, MINK_OP_CLIENT_ENV_OPEN, p, 2,
 				  &result))
 		goto err_client_env;
 	if (result)
@@ -286,4 +286,174 @@ void finalize_context(TEEC_Context *ctx)
 	TEEC_OBJ_RELEASE(ctx->imp.waiter_cbo);
 	TEEC_OBJ_RELEASE(ctx->imp.app_client);
 	TEEC_OBJ_RELEASE(ctx->imp.root_obj);
+}
+
+/**
+ * @brief Turn a QTEE level error into the GP result/origin pair.
+ *
+ * Reproduces the table mink_teec.c applies to the return value of the generated
+ * stub, so both backends report the same thing for the same failure.
+ *
+ * @param rv The error QTEE reported, never QCOMTEE_OK.
+ * @param result Receives the GP result code.
+ * @param eorigin Receives the GP origin.
+ */
+static void map_err(qcomtee_result_t rv, TEEC_Result *result, uint32_t *eorigin)
+{
+	/* qcomtee_result_t is unsigned, but the error space it carries is
+	 * signed: every QCOMTEE_ERROR_* below is negative. Without the
+	 * reinterpretation each of them would compare unequal and fall through
+	 * to the generic case. libminkadaptor relies on the same
+	 * reinterpretation, by assigning the result to an int32_t.
+	 */
+	int32_t e = (int32_t)rv;
+
+	if (e == QCOMTEE_ERROR_DEFUNCT) {
+		*result = TEEC_ERROR_TARGET_DEAD;
+		*eorigin = TEEC_ORIGIN_TEE;
+	} else if (e == QCOMTEE_ERROR_BUSY) {
+		*result = TEEC_ERROR_BUSY;
+		*eorigin = TEEC_ORIGIN_TEE;
+	} else if (e == QCOMTEE_ERROR_KMEM || e == QCOMTEE_ERROR_NOSLOTS) {
+		*result = TEEC_ERROR_OUT_OF_MEMORY;
+		*eorigin = TEEC_ORIGIN_TEE;
+	} else {
+		*result = TEEC_ERROR_GENERIC;
+		*eorigin = TEEC_ORIGIN_COMMS;
+	}
+
+	/* Note that no branch yields TEEC_ORIGIN_TRUSTED_APP, which is what
+	 * open_session() keys the disposal of the session object off. A
+	 * transport or QTEE level failure therefore never leaves an object
+	 * behind to dispose of, and indeed mink_wire_invoke() did not write one.
+	 */
+}
+
+/**
+ * @brief Issue an IGPAppClient.openSession request.
+ *
+ * @param app_client The application client obtained at context initialization.
+ * @param waiter_cbo The cancellation waiter, borrowed.
+ * @param destination UUID of the trusted application to reach.
+ * @param conn_method The GP connection method.
+ * @param conn_data The GP connection data.
+ * @param call The translated parameters and the three type/code words.
+ * @param session_obj Receives the session object, owned by the caller.
+ * @param eorigin Receives the GP origin.
+ * @return The GP result code: what QTEE returned for the method when it ran it,
+ *         otherwise the mapping of the failure that kept it from running.
+ */
+static TEEC_Result mink_open_session_invoke(teec_obj_t app_client,
+					  teec_obj_t waiter_cbo,
+					  const TEEC_UUID *destination,
+					  uint32_t conn_method,
+					  uint32_t conn_data,
+					  const struct mink_call *call,
+					  teec_obj_t *session_obj,
+					  uint32_t *eorigin)
+{
+	struct os_in in = {
+		.cancel_code = call->cancel_code,
+		.conn_method = conn_method,
+		.conn_data = conn_data,
+		.param_types = call->param_types,
+		.ex_param_types = call->ex_param_types,
+	};
+	struct mink_out_scalars out = { 0 };
+	qcomtee_result_t rv = QCOMTEE_OK;
+	TEEC_Result result = TEEC_SUCCESS;
+
+	if (mink_wire_invoke(app_client, MINK_OP_OPEN_SESSION, OS_SLOT_COUNT,
+			   OS_BI_UUID, destination, sizeof(*destination),
+			   OS_BI_SCALARS, &in, sizeof(in), OS_BI_PARAM0,
+			   OS_BO_SCALARS, &out, OS_BO_PARAM0, OS_OI_WAITER,
+			   waiter_cbo, OS_OI_MEM0, call->param, OS_OO_SESSION,
+			   session_obj, &rv)) {
+		/* The request never reached QTEE, so there is no specific code
+		 * to report. libminkadaptor flattens this case to Object_ERROR
+		 * before mink_teec.c gets to look at it, which lands in the
+		 * generic branch of the very same table.
+		 */
+		map_err(QCOMTEE_ERROR, &result, eorigin);
+
+		return result;
+	}
+
+	if (rv) {
+		map_err(rv, &result, eorigin);
+
+		return result;
+	}
+
+	*eorigin = out.ret_origin;
+
+	return out.ret_value;
+}
+
+TEEC_Result open_session(TEEC_Context *ctx, TEEC_Session *session,
+			 const TEEC_UUID *destination, uint32_t conn_method,
+			 const void *connection_data, TEEC_Operation *op,
+			 uint32_t *ret_origin)
+{
+	struct mink_call call = { 0 };
+	TEEC_Result result = TEEC_SUCCESS;
+	uint32_t eorigin = TEEC_ORIGIN_COMMS;
+	uint32_t conn_data = 0;
+
+	if (!ctx || !session || !destination)
+		return TEEC_ERROR_BAD_PARAMETERS;
+
+	if (connection_data)
+		conn_data = *(const uint32_t *)connection_data;
+
+	if (ret_origin)
+		*ret_origin = TEEC_ORIGIN_COMMS;
+
+	/* Zeroing struct mink_call is not enough: the memref size write-back
+	 * needs out_buf.len_out to point back at out_buf.len.
+	 */
+	mink_params_INIT(call.param);
+
+	if (op) {
+		call.cancel_code = (rand() & CANCEL_CODE_MASK);
+		op->imp.cancel_code = call.cancel_code;
+		op->imp.session = session;
+
+		result = memref_temp_to_partial_params(ctx, &(op->paramTypes),
+						       op->params);
+		if (result)
+			return result;
+
+		mink_params_from_teec_params(op->paramTypes, op->params,
+					   call.param, &call.ex_param_types);
+		tee_types_from_teec_types(op, &call.param_types);
+	}
+
+	result = mink_open_session_invoke(ctx->imp.app_client, ctx->imp.waiter_cbo,
+					destination, conn_method, conn_data,
+					&call, &(session->imp.session_obj),
+					&eorigin);
+	if (result)
+		MSGE("mink_open_session_invoke() failed: 0x%x\n", result);
+
+	if (result) {
+		/* QTEE hands back a session object even when the trusted
+		 * application is the one that refused the session, and the
+		 * caller must not be left holding it.
+		 */
+		if (eorigin == TEEC_ORIGIN_TRUSTED_APP)
+			TEEC_OBJ_RELEASE(session->imp.session_obj);
+	} else {
+		session->imp.ctx = ctx;
+	}
+
+	if (ret_origin)
+		*ret_origin = eorigin;
+
+	if (op) {
+		update_shm_memref_from_mem_obj(op->paramTypes, op->params);
+		memref_temp_from_partial_params(&(op->paramTypes), op->params);
+	}
+
+	return result;
 }
