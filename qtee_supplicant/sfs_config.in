@@ -15,12 +15,12 @@ if [ ! -d /var/lib/tee/qtee_supplicant ]; then
     echo "Creating /var/lib/tee/qtee_supplicant"
     mkdir -p /var/lib/tee/qtee_supplicant
 fi
-chmod o+rwx /var/lib/tee/qtee_supplicant
+chmod 755 /var/lib/tee/qtee_supplicant
 
 if [ ! -d /var/lib/qtee_supplicant/vendor/tzstorage ]; then
     echo "Creating /var/lib/qtee_supplicant/vendor/tzstorage"
     mkdir -p /var/lib/qtee_supplicant/vendor/tzstorage
 fi
-chmod o+rwx /var/lib/qtee_supplicant/vendor/tzstorage
+chmod 755 /var/lib/qtee_supplicant/vendor/tzstorage
 
 exit 0
