@@ -7,6 +7,7 @@
 #include "IRequestTABuffer.h"
 #include "taImageReader.h"
 #include "utils.h"
+#include "qlist.h"
 #include <fstream>
 #include <string>
 #include <vector>
@@ -17,6 +18,15 @@ using namespace std;
 static const size_t HYPHEN_LEN(4);
 static const size_t NULLCHAR_LEN(1);
 static const size_t STRING_MULTIPLIER(2);
+
+/**
+ * @brief QNode wrapper tracking a memObj handed out by CRequestTABuffer_get,
+ *        without holding an extra reference on it.
+ */
+typedef struct {
+  QNode qn;
+  Object memObj;
+} MemObjNode;
 
 /**
  * @brief Parse the device compatible string for possible device names.
@@ -86,6 +96,7 @@ static string readCompatibleString()
 static CRequestTABuffer *getCRequestTABuffer()
 {
   CRequestTABuffer * requestTABuff = new CRequestTABuffer();
+  QList_construct(&requestTABuff->memObjList);
   for (int i = 0; i < TA_PATH_LIST_SIZE; i++)
   {
     string taPaths = ta_path_list[i];
@@ -143,6 +154,34 @@ static int32_t CRequestTABuffer_retain(CRequestTABuffer *me)
 }
 
 /**
+ * @brief Release all memObj held in memObjList.
+ *
+ * Invoked before destroying the CRequestTABuffer instance to release the
+ * memObj references retained for every TA buffer handed out via
+ * CRequestTABuffer_get.
+ *
+ * @param me The local object associated with this interface.
+ * @return Object_OK
+ */
+static int32_t CRequestTABuffer_cleanup(CRequestTABuffer *me)
+{
+  QNode *node = NULL;
+  QNode *nextNode = NULL;
+  MemObjNode *memObjNode = NULL;
+
+  QLIST_NEXTSAFE_FOR_ALL(&me->memObjList, node, nextNode)
+  {
+    memObjNode = container_of(node, MemObjNode, qn);
+    Object_ASSIGN_NULL(memObjNode->memObj);
+    delete(memObjNode);
+  }
+
+  QList_construct(&me->memObjList);
+
+  return Object_OK;
+}
+
+/**
  * @brief Release the self Object.
  *
  * @param me The local object associated with this interface.
@@ -168,6 +207,7 @@ int32_t CRequestTABuffer_get(CRequestTABuffer *me, const void *uuid_ptr, size_t 
   size_t distNameLen = 0;
   TAImageReader *TAImage = nullptr;
   TEEC_UUID *pTargetUUID = NULL;
+  MemObjNode *memObjNode = NULL;
   if (uuid_len != sizeof(TEEC_UUID))
   {
     MSGE("Invalid UUID Len");
@@ -197,6 +237,11 @@ int32_t CRequestTABuffer_get(CRequestTABuffer *me, const void *uuid_ptr, size_t 
   }
 
   Object_INIT(*appElf, TAImage->getMemoryObject());
+
+  memObjNode = new MemObjNode();
+  memObjNode->memObj = TAImage->getMemoryObject();
+  QNode_construct(&memObjNode->qn);
+  QList_appendNode(&me->memObjList, &memObjNode->qn);
 
   retVal = Object_OK;
 
