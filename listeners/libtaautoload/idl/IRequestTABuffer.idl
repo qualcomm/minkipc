@@ -23,6 +23,13 @@ interface IRequestTABuffer {
   */
    method get(in buffer uuid, out interface appElf);
 
+  /**
+    Release all memObj held in memObjList
+
+    @return Object_OK on success.
+  */
+   method cleanup();
+
   /* @} */ /* end_addtogroup IRequestTABuffer */
 };
 
