@@ -80,6 +80,20 @@ typedef uint32_t ObjectOp;
  */
 #define Object_OP_retain        (ObjectOp_METHOD_MASK - 1)
 
+/**
+* @def Object_OP_version
+* @brief An operation to query the API version implemented by the object.
+*
+* Emitted by mink-idl-compiler >= 0.3.0, which generates an
+* I<Interface>_api_version() helper for every interface and a matching
+* `case Object_OP_version:` arm in the I<Interface>_DEFINE_INVOKE skeleton
+* macro.
+*
+* Value matches the reference object.h in mink-idl-compiler (tests/c/object.h).
+* It derives from ObjectOp_LOCAL rather than ObjectOp_METHOD_MASK.
+*/
+#define Object_OP_version	(ObjectOp_LOCAL - 1)
+
 /** @} */ // end of ObjectOperations
 
 /* 'OBJECT COUNTS' */
