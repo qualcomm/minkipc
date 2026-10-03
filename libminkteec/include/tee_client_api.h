@@ -8,7 +8,18 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include "minkteec_config.h"
+
+/* Opaque object handle stored in the implementation-defined parts of
+ * TEEC_Context, TEEC_Session and TEEC_SharedMemory.
+ */
+#if MINKTEEC_DIRECT_QCOMTEE
+struct qcomtee_object;
+typedef struct qcomtee_object *teec_obj_t;
+#else
 #include "object.h"
+typedef Object teec_obj_t;
+#endif
 
 typedef uint32_t TEEC_Result;
 
@@ -232,7 +243,7 @@ typedef uint32_t TEEC_Result;
 /* Login data about the group running the Client Application and about the
  * Client Application itself is provided.
  * Reserved for implementation-defined connection methods
- * 0x80000000 – 0xFFFFFFFF Behavior is implementation-defined.
+ * 0x80000000 - 0xFFFFFFFF Behavior is implementation-defined.
  */
 #define TEEC_LOGIN_GROUP_APPLICATION  0x00000006
 
@@ -264,9 +275,9 @@ typedef struct  {
 
 	/*<Implementation-Defined Type>*/
 	struct {
-		Object root_obj;
-		Object app_client;
-		Object waiter_cbo;
+		teec_obj_t root_obj;
+		teec_obj_t app_client;
+		teec_obj_t waiter_cbo;
 	} imp;
 } TEEC_Context;
 
@@ -275,7 +286,7 @@ typedef struct  {
 	/*<Implementation-Defined Type>*/
 	struct {
 		TEEC_Context *ctx;
-		Object session_obj;
+		teec_obj_t session_obj;
 	} imp;
 } TEEC_Session;
 
@@ -299,7 +310,7 @@ typedef struct {
 		TEEC_Context *ctx;
 		uint8_t type;
 		uint8_t converted;
-		Object mem_obj;
+		teec_obj_t mem_obj;
 	} imp;
 } TEEC_SharedMemory;
 
@@ -320,7 +331,7 @@ typedef struct {
  *      structure  is  not  TEEC_MEMREF_WHOLE. Otherwise, the size is read from
  *      the parent Shared Memory structure.
  *      o  When an operation completes, and if the Memory Reference is tagged as
- *      “output”, this is updated by trusted appluication to reflect the actual
+ *      "output", this is updated by trusted appluication to reflect the actual
  *      or required size of the output. This applies even if the parameter type
  *      is TEEC_MEMREF_WHOLE:
  *      If the Trusted Application has actually written some data in the

@@ -4,74 +4,22 @@
 #ifndef __MINK_TEEC_H_
 #define __MINK_TEEC_H_
 
-#include <stdio.h>
-
-#include "tee_client_api.h"
-#include "IGPSession.h"
-
-#define MSGV printf
-#define MSGD printf
-#define MSGE printf
-
-#define CANCEL_CODE_MASK             0x7FFFFFFF
-#define MINK_TEEC_TIMEOUT_INFINITE   0xFFFFFFFF
-
-#define TEEC_SHM_MAX_HEAP_SZ         0x1000
-
-#define TEE_PARAM_TYPE_MEMREF_INPUT  5
-#define TEE_PARAM_TYPE_MEMREF_OUTPUT 6
-#define TEE_PARAM_TYPE_MEMREF_INOUT  7
-
-#define DEFINING_INDEX_NA ((size_t)0xFFFFFFFF)
-
-#define TRUE  1
-#define FALSE 0
-
-enum TEEC_MEMORY_TYPE {
-	TEEC_MEMORY_FREE = 0,
-	TEEC_MEMORY_ALLOCATED,
-	TEEC_MEMORY_REGISTERED
-};
-
-/**
- * @brief MINK_OutBuffer.
+/* Private header of the libminkadaptor backend.
  *
- * The MINK Parameter representing an output buffer.
- */
-typedef struct {
-	void *buf;
-	size_t len;
-	size_t *len_out;
-} MINK_OutBuffer;
-
-/**
- * @brief MINK_InBuffer.
+ * Declares the nine entry points the public API calls down into, implemented
+ * here by mink_teec.c on top of the idlc generated stubs. The direct
+ * libqcomtee backend declares the very same nine in gp_teec.h, and
+ * tee_client_api.c includes whichever of the two headers matches
+ * MINKTEEC_DIRECT_QCOMTEE.
  *
- * The MINK Parameter representing an input buffer.
+ * Everything the two backends share - the GP parameter types, the TEEC_OBJ_*
+ * handle helpers and the translation layer itself - lives in mink_params.h.
  */
-typedef struct {
-	void *buf;
-	size_t len;
-	size_t sh_obj_index;
-} MINK_InBuffer;
-
-typedef IGPSession_MemoryObjectParameters MemoryObjectParams;
+#include "mink_params.h"
 
 /**
- * @brief MINK_Parameter.
- *
- * The MINK Parameter to be passed to a MINK API
- */
-typedef struct {
-	MINK_InBuffer in_buf;
-	MINK_OutBuffer out_buf;
-	Object mem_obj;
-	MemoryObjectParams mem_obj_params;
-} MINK_Parameter;
-
-/**
- * @brief Initializes a new TEE Context over MINK IPC, forming a connection
- * between the Client Application and QTEE.
+ * @brief Initializes a new TEE Context, forming a connection between the
+ * Client Application and QTEE.
  *
  * @param ctx The TEE context to be initialized.
  * @return TEEC_SUCCESS if the initialization was successful.

@@ -1,7 +1,19 @@
 // Copyright (c) 2025, Qualcomm Innovation Center, Inc. All rights reserved.
 // SPDX-License-Identifier: BSD-3-Clause
 
+/* The nine entry points this file calls down into are declared by the active
+ * backend's private header rather than by the shared mink_params.h, so that each
+ * backend owns the contract it implements. The generated config header has to
+ * come first: the switch is needed here before anything that would pull it in
+ * through tee_client_api.h has been included.
+ */
+#include "minkteec_config.h"
+
+#if MINKTEEC_DIRECT_QCOMTEE
+#include "gp_teec.h"
+#else
 #include "mink_teec.h"
+#endif
 
 static int verify_shm(TEEC_RegisteredMemoryReference memref,
 		      TEEC_SharedMemory *shm, TEEC_Context *ctx, uint32_t type)
