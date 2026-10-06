@@ -93,7 +93,7 @@ The service handles four command IDs dispatched by the secure world:
 
 | Command ID | Value | Description |
 |---|---|---|
-| `TZ_CM_CMD_RPMB_INIT` | `0x101` | Device init — returns size and `rel_wr_count` |
+| `TZ_CM_CMD_RPMB_INIT` | `0x101` | Device init — returns size, `rel_wr_count`, and (version 2+) `dev_type` |
 | `TZ_CM_CMD_RPMB_READ` | `0x102` | Authenticated read |
 | `TZ_CM_CMD_RPMB_WRITE` | `0x103` | Authenticated write |
 | `TZ_CM_CMD_RPMB_PARTITION` | `0x104` | Partition table query |
@@ -106,7 +106,6 @@ at offset 0 and the RPMB frame payload follows immediately after.
 ### Key wire structures
 
 ```c
-/* Init response — tells TZ the device size and MAC batch size */
 typedef struct {
     uint32_t cmd_id;
     uint32_t version;
@@ -114,6 +113,19 @@ typedef struct {
     uint32_t num_sectors;    /* RPMB partition size in 512-byte sectors */
     uint32_t rel_wr_count;   /* Frames per authenticated write operation */
 } tz_sd_device_init_res_t;
+
+typedef struct {
+    uint32_t cmd_id;
+    uint32_t version;
+    int32_t  status;
+    uint32_t num_sectors;
+    uint32_t rel_wr_count;
+    uint32_t dev_type;       /* device_id_type of the detected device (eMMC/UFS) */
+    uint32_t reserved1;
+    uint32_t reserved2;
+    uint32_t reserved3;
+    uint32_t reserved4;
+} tz_sd_device_init_res_v02_t;
 
 /* Read / write request */
 typedef struct {

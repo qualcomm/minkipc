@@ -28,6 +28,13 @@ typedef enum {
 } tz_rpmb_cmd_id_t;
 
 /*
+ * RPMB init message versions
+ */
+
+#define RPMB_LSTNR_VERSION_1 1
+#define RPMB_LSTNR_VERSION_2 2
+
+/*
  * TZ request / response wire structures
  */
 
@@ -43,6 +50,19 @@ typedef struct {
 	uint32_t num_sectors;
 	uint32_t rel_wr_count;
 } __attribute__((packed)) tz_sd_device_init_res_t;
+
+typedef struct {
+	uint32_t cmd_id;
+	uint32_t version;
+	int32_t status;
+	uint32_t num_sectors;
+	uint32_t rel_wr_count;
+	uint32_t dev_type;
+	uint32_t reserved1;
+	uint32_t reserved2;
+	uint32_t reserved3;
+	uint32_t reserved4;
+} __attribute__((packed)) tz_sd_device_init_res_v02_t;
 
 typedef struct {
 	uint32_t cmd_id;
