@@ -60,5 +60,5 @@ set_target_properties(fsservice PROPERTIES
 # ''Install targets''.
 
 install(TARGETS fsservice
-	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
 )

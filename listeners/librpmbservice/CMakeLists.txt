@@ -40,5 +40,5 @@ target_link_libraries(rpmbservice
 )
 
 install(TARGETS rpmbservice
-	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
 )

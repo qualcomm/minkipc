@@ -60,5 +60,5 @@ set_target_properties(gpfsservice PROPERTIES
 # ''Install targets''.
 
 install(TARGETS gpfsservice
-	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
 )

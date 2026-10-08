@@ -49,5 +49,5 @@ target_link_libraries(timeservice
 # ''Install targets''.
 
 install(TARGETS timeservice
-	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
 )

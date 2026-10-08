@@ -32,6 +32,13 @@ set(MINKIDLC_BIN_DIR "${CMAKE_CURRENT_SOURCE_DIR}/idlc" CACHE PATH "Directory co
 set(SYSTEMD_UNIT_DIR "" CACHE PATH "Directory containing the systemd unit path")
 set(UDEV_DIR "" CACHE PATH "Directory containing the UDEV path")
 set(PERSIST_MOUNT_UNIT "" CACHE PATH "Name of the systemd unit responsible for mounting the persist partition")
+set(PLUGIN_DIR "" CACHE PATH "Absolute directory the listener plugin libraries are installed to and loaded from by qtee_supplicant (default: the library directory)")
+
+if (PLUGIN_DIR)
+	set(PLUGIN_INSTALL_DIR "${PLUGIN_DIR}")
+else()
+	set(PLUGIN_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}")
+endif()
 set(DISTRO_USER "root" CACHE STRING "Distro specific user for systemd service and devices")
 set(DISTRO_GROUP "root" CACHE STRING "Distro specific group for the systemd service devices")
 

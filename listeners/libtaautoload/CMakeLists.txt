@@ -76,5 +76,5 @@ target_link_libraries(taautoload
 # ''Install targets''.
 
 install(TARGETS taautoload
-	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
+	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
 )
