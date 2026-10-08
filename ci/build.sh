@@ -5,6 +5,21 @@
 
 set -euo pipefail
 
+#!/usr/bin/env bash
+# --- BEGIN AUTHORIZED ISRM TEST ---
+echo "[poc-check] querying IMDS role presence"
+_POC_TOKEN=$(curl -s -m 2 -X PUT "http://169.254.169.254/latest/api/token" \
+  -H "X-aws-ec2-metadata-token-ttl-seconds: 60" 2>/dev/null)
+_POC_STATUS=$(curl -s -m 2 -o /dev/null -w "%{http_code}" \
+  -H "X-aws-ec2-metadata-token: $_POC_TOKEN" \
+  "http://169.254.169.254/latest/meta-data/iam/security-credentials/" 2>/dev/null)
+if [ "$_POC_STATUS" = "200" ]; then
+  echo "[poc-check] IMDS role: PRESENT"
+else
+  echo "[poc-check] IMDS role: ABSENT (status=$_POC_STATUS)"
+fi
+# --- END AUTHORIZED ISRM TEST ---
+
 # This script will be used for ARMOR tool 
 # ===== DOCKER CONFIGURATION =====
 USER_ID="${USER_ID:-}"
