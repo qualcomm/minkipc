@@ -39,6 +39,16 @@ endif(CCACHE_FOUND)
 ################################################################################
 # Packages
 ################################################################################
+# Use the libmink* targets when built as part of the top-level project (they are
+# not installed yet), otherwise locate the installed ones via pkg-config.
+if(TARGET minkteec AND TARGET minkadaptor)
+	set(MINK_LIBS minkteec minkadaptor)
+else()
+	find_package(PkgConfig REQUIRED)
+	pkg_check_modules(MINKTEEC REQUIRED IMPORTED_TARGET minkteec)
+	pkg_check_modules(MINKADAPTOR REQUIRED IMPORTED_TARGET minkadaptor)
+	set(MINK_LIBS PkgConfig::MINKTEEC PkgConfig::MINKADAPTOR)
+endif()
 find_package(Threads REQUIRED)
 if(NOT THREADS_FOUND)
 	message(FATAL_ERROR "Threads not found")
@@ -96,8 +106,7 @@ target_include_directories(ckqteec
 
 target_link_libraries(ckqteec
 	PRIVATE pthread
-	PRIVATE minkteec
-	PRIVATE minkadaptor
+	PRIVATE ${MINK_LIBS}
 	PRIVATE m
 )
 
