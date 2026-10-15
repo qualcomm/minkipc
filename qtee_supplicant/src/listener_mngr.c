@@ -9,12 +9,17 @@
 #include "listener_mngr.h"
 
 #define MAX_LISTENERS 8
+
+#ifndef PLUGIN_PATH
+#define PLUGIN_PATH ""
+#endif
+
 static struct listener_svc listeners[] = {
 #ifdef TIME_LISTENER
 	{
 		.service_name = "Time service",
 		.is_registered = false,
-		.file_name = "libtimeservice.so.1",
+		.file_name = PLUGIN_PATH "libtimeservice.so.1",
 		.lib_handle = NULL,
 	},
 #endif
@@ -22,7 +27,7 @@ static struct listener_svc listeners[] = {
 	{
 		.service_name = "TA Autoload service",
 		.is_registered = false,
-		.file_name = "libtaautoload.so.1",
+		.file_name = PLUGIN_PATH "libtaautoload.so.1",
 		.lib_handle = NULL,
 	},
 #endif
@@ -30,7 +35,7 @@ static struct listener_svc listeners[] = {
 	{
 		.service_name = "FS service",
 		.is_registered = false,
-		.file_name = "libfsservice.so.1",
+		.file_name = PLUGIN_PATH "libfsservice.so.1",
 		.lib_handle = NULL,
 	},
 #endif
@@ -38,7 +43,7 @@ static struct listener_svc listeners[] = {
 	{
 		.service_name = "GPFS service",
 		.is_registered = false,
-		.file_name = "libgpfsservice.so.1",
+		.file_name = PLUGIN_PATH "libgpfsservice.so.1",
 		.lib_handle = NULL,
 	},
 #endif
@@ -46,7 +51,7 @@ static struct listener_svc listeners[] = {
 	{
 		.service_name = "rpmb service",
 		.is_registered = false,
-		.file_name = "librpmbservice.so.1",
+		.file_name = PLUGIN_PATH "librpmbservice.so.1",
 		.lib_handle = NULL,
 	},
 #endif
