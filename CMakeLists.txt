@@ -23,6 +23,9 @@ option(BUILD_RPMB_LISTENER "Build RPMB Listener" TRUE)
 # Build RPMB Client
 option(BUILD_RPMB_CLIENT "Build RPMB Client" TRUE)
 
+# Build FSP Client
+option(BUILD_FSP_CLIENT "Build FSP Client" TRUE)
+
 # Build PKCS-11
 option(BUILD_PKCS11 "Build PKCS#11" TRUE)
 
@@ -83,4 +86,8 @@ endif()
 
 if(BUILD_RPMB_CLIENT)
 	add_subdirectory(rpmb_client)
+endif()
+
+if(BUILD_FSP_CLIENT)
+	add_subdirectory(fsp_client)
 endif()
