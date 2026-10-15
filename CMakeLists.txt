@@ -43,8 +43,16 @@ set(DISTRO_USER "root" CACHE STRING "Distro specific user for systemd service an
 set(DISTRO_GROUP "root" CACHE STRING "Distro specific group for the systemd service devices")
 
 if ("${MINKIDLC_BIN_DIR}" STREQUAL "${CMAKE_CURRENT_SOURCE_DIR}/idlc")
+	if (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(aarch64|arm64)$")
+		set(MINKIDLC_ASSET "idlc-aarch64-unknown-linux-musl")
+	elseif (CMAKE_HOST_SYSTEM_PROCESSOR MATCHES "^(x86_64|AMD64)$")
+		set(MINKIDLC_ASSET "idlc-x86_64-unknown-linux-musl")
+	else()
+		message(FATAL_ERROR "No prebuilt mink-idl-compiler binary available for host architecture ${CMAKE_HOST_SYSTEM_PROCESSOR}")
+	endif()
+
 	file(DOWNLOAD
-	https://github.com/quic/mink-idl-compiler/releases/download/v0.2.0/idlc
+	https://github.com/quic/mink-idl-compiler/releases/download/v1.0.1/${MINKIDLC_ASSET}
 	${MINKIDLC_BIN_DIR}/idlc
 	)
 	file(CHMOD ${MINKIDLC_BIN_DIR}/idlc PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ)
