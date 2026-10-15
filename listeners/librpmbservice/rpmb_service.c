@@ -54,27 +54,41 @@ static Object cbo = Object_NULL;
 static int rpmb_handle_init(void *req, void *rsp)
 {
 	tz_sd_device_init_req_t *init_req = (tz_sd_device_init_req_t *)req;
-	tz_sd_device_init_res_t *init_rsp = (tz_sd_device_init_res_t *)rsp;
+	tz_sd_device_init_res_t init_rsp = {0};
+	tz_sd_device_init_res_v02_t init_rsp_v02 = {0};
 	rpmb_init_info_t info = {0};
 
-	/*
-	 * req and rsp alias the same buffer.  Read fields before memset
-	 * zeroes them -- sizeof(init_rsp) > sizeof(init_req).
-	 */
 	uint32_t cmd_id = init_req->cmd_id;
 	uint32_t version = init_req->version;
-
-	memset(init_rsp, 0, sizeof(*init_rsp));
-	init_rsp->cmd_id = cmd_id;
-	init_rsp->version = version;
-	init_rsp->status = rpmb_init(&info);
-
-	init_rsp->num_sectors = info.size;
-	init_rsp->rel_wr_count = info.rel_wr_count;
+	int status = rpmb_init(&info);
 
 	RPMB_LOG_INFO("RPMB init: status=%d size=%u rel_wr=%u type=%u\n",
-		      init_rsp->status, info.size,
-		      info.rel_wr_count, info.dev_type);
+		      status, info.size, info.rel_wr_count, info.dev_type);
+
+	if (version == RPMB_LSTNR_VERSION_1) {
+		init_rsp.cmd_id = cmd_id;
+		init_rsp.version = RPMB_LSTNR_VERSION_1;
+		init_rsp.status = status;
+		init_rsp.num_sectors = info.size;
+		init_rsp.rel_wr_count = info.rel_wr_count;
+		memmove(rsp, &init_rsp, sizeof(init_rsp));
+	} else if (version >= RPMB_LSTNR_VERSION_2) {
+		init_rsp_v02.cmd_id = cmd_id;
+		init_rsp_v02.version = RPMB_LSTNR_VERSION_2;
+		init_rsp_v02.status = status;
+		init_rsp_v02.num_sectors = info.size;
+		init_rsp_v02.rel_wr_count = info.rel_wr_count;
+		init_rsp_v02.dev_type = info.dev_type;
+		memmove(rsp, &init_rsp_v02, sizeof(init_rsp_v02));
+	} else {
+		RPMB_LOG_ERROR("RPMB init: unsupported version=%u\n", version);
+		init_rsp.cmd_id = cmd_id;
+		init_rsp.version = RPMB_LSTNR_VERSION_1;
+		init_rsp.status = -1;
+		init_rsp.num_sectors = 0;
+		init_rsp.rel_wr_count = 0;
+		memmove(rsp, &init_rsp, sizeof(init_rsp));
+	}
 	return 0;
 }
 
