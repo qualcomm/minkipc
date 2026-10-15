@@ -14,8 +14,8 @@ extern "C" {
 #endif
 
 /* TA binaries path on device */
-#define TA_PATH_LIST_SIZE 2
-static const std::string ta_path_list[TA_PATH_LIST_SIZE] = { "/data", "/lib/qtee-tas" };
+#define TA_PATH_LIST_SIZE 3
+static const std::string ta_path_list[TA_PATH_LIST_SIZE] = { "/usr/lib/qtee-tas", "/lib/qtee-tas", "/data" };
 
 typedef struct
 {
