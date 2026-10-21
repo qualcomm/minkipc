@@ -66,9 +66,12 @@ set_target_properties(minkadaptor PROPERTIES
 
 # ''Headers and dependencies''.
 
+add_dependencies(minkadaptor taautoload_MINKHEADERS)
+
 target_include_directories(minkadaptor
 	PUBLIC include
 	PRIVATE src
+	PRIVATE ${CMAKE_SOURCE_DIR}/listeners/libtaautoload/idl
 )
 
 if (QCBOR_FOUND)
