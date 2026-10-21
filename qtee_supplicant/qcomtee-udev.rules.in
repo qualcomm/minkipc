@@ -1,7 +1,7 @@
 # Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 
-KERNEL=="tee[0-9]*", MODE="0660", OWNER="root", GROUP="@DISTRO_GROUP@", TAG+="systemd" ENV{SYSTEMD_WANTS}+="qteesupplicant.service"
-KERNEL=="0:0:0:49476", SUBSYSTEM=="bsg", MODE="0660", OWNER="root", GROUP="@DISTRO_GROUP@", TAG+="systemd" ENV{SYSTEMD_WANTS}+="qteesupplicant.service"
-KERNEL=="ufs-bsg0", SUBSYSTEM=="bsg", MODE="0660", OWNER="root", GROUP="@DISTRO_GROUP@", TAG+="systemd" ENV{SYSTEMD_WANTS}+="qteesupplicant.service"
-KERNEL=="mmcblk0rpmb", SUBSYSTEM=="mmc_rpmb", MODE="0660", OWNER="root", GROUP="@DISTRO_GROUP@", TAG+="systemd" ENV{SYSTEMD_WANTS}+="qteesupplicant.service"
+KERNEL=="tee[0-9]*", MODE="0660", OWNER="root", GROUP="@DISTRO_GROUP@", TAG+="systemd", ENV{SYSTEMD_WANTS}+="qteesupplicant.service"
+KERNEL=="0:0:0:49476", SUBSYSTEM=="bsg", MODE="0660", OWNER="root", GROUP="@DISTRO_GROUP@", TAG+="systemd", ENV{SYSTEMD_WANTS}+="qteesupplicant.service"
+KERNEL=="ufs-bsg0", SUBSYSTEM=="bsg", MODE="0660", OWNER="root", GROUP="@DISTRO_GROUP@", TAG+="systemd", ENV{SYSTEMD_WANTS}+="qteesupplicant.service"
+KERNEL=="mmcblk0rpmb", SUBSYSTEM=="mmc_rpmb", MODE="0660", OWNER="root", GROUP="@DISTRO_GROUP@", TAG+="systemd", ENV{SYSTEMD_WANTS}+="qteesupplicant.service"
