@@ -39,6 +39,7 @@ if (PLUGIN_DIR)
 else()
 	set(PLUGIN_INSTALL_DIR "${CMAKE_INSTALL_LIBDIR}")
 endif()
+set(TA_DIR "/usr/lib/qtee-tas" CACHE PATH "Directory the TA autoload listener loads TA binaries from, as <dir>/<device-tree compatible>/")
 set(DISTRO_USER "root" CACHE STRING "Distro specific user for systemd service and devices")
 set(DISTRO_GROUP "root" CACHE STRING "Distro specific group for the systemd service devices")
 

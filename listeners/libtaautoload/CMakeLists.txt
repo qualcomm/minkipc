@@ -73,6 +73,13 @@ target_link_libraries(taautoload
 	PRIVATE minkadaptor
 )
 
+if(NOT TA_DIR)
+	message(FATAL_ERROR "TA_DIR is not set: set the TA binaries path with -DTA_DIR=<path>")
+endif()
+
+target_compile_definitions(taautoload
+	PRIVATE TA_PATH="${TA_DIR}")
+
 # ''Install targets''.
 
 install(TARGETS taautoload
