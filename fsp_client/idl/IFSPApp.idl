@@ -1,0 +1,74 @@
+// Copyright (c) 2026, Qualcomm Innovation Center, Inc. All rights reserved.
+// SPDX-License-Identifier: BSD-3-Clause
+
+/**
+ * @addtogroup IFSPApp
+ * @{
+ *   IFSPApp provides access to the Factory Safe Provisioning (FSP) sample
+ *   DRM implementation.
+ */
+
+const int32 WIDEVINE_FEATURE_ID = 1;
+const int32 HDCP1_FEATURE_ID = 2;
+const int32 HDCP2_FEATURE_ID = 3;
+const int32 UIE_KEY_0_FEATURE_ID = 4;
+const int32 UIE_KEY_1_FEATURE_ID = 5;
+const int32 KEYMASTER_FEATURE_ID = 6;
+
+/** @cond */
+interface IFSPApp {
+/** @endcond */
+
+  error ERROR_INVALID_PARAM;
+  error ERROR_INVALID_SIZE;
+  error ERROR_CMD_NOT_AVAILABLE;
+  error ERROR_UNSUPPORTED_FEATURE_ID;
+  error ERROR_UIE_PROVISIONING_DISABLED;
+  error ERROR_OEM_IMAGE_ENCRYPTION_WRITE_DISABLED;
+  error ERROR_QFPROM_STATUS_CHECK;
+
+  /**
+   * Retrieve the public key of the device.
+   *
+   * @param[in]  feature_id  Feature id for the TA.
+   * @param[out] pub_key     Public key of the device.
+   *
+   * @return Object_OK on success. Any other error code on failure.
+   */
+  method get_public_key(in uint32 feature_id, out buffer pub_key);
+
+  /**
+   * Decrypt a wrapped keybox.
+   *
+   * @param[in]     feature_id    Feature id for the TA.
+   * @param[out]    buf_len_out   Number of valid bytes written back into mem_obj.
+   * @param[in]     mem_obj       Memory object containing the wrapped/clear keybox.
+   * @param[in]     buf_len_in    Number of bytes written to mem_obj on input.
+   * @param[in]     is_encrypted  Flag to notify if mem_obj contains encrypted data.
+   *
+   * @return Object_OK on success. Any other error code on failure.
+   */
+  method decrypt_payload(in uint32 feature_id,
+                         out uint32 buf_len_out,
+                         in interface mem_obj,
+                         in uint32 buf_len_in,
+                         in uint32 is_encrypted);
+
+  /**
+   * Provision a keybox on a device using an encrypted/clear keybox as input.
+   * Used for usecases that don't have their own TA.
+   *
+   * @param[in] feature_id    Feature id for the TA.
+   * @param[in] mem_obj       Memory object created for the encrypted/clear keybox.
+   * @param[in] buf_len       Number of bytes written to mem_obj.
+   * @param[in] is_encrypted  Flag to notify if mem_obj contains encrypted data.
+   *
+   * @return Object_OK on success. Any other error code on failure.
+   */
+  method decrypt_and_provision_key(in uint32 feature_id,
+                                   in interface mem_obj,
+                                   in uint32 buf_len,
+                                   in uint32 is_encrypted);
+
+  /** @} */
+};

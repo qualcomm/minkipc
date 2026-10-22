@@ -1,0 +1,149 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+/** @cond */
+interface IAppController {
+/** @endcond */
+
+  /** @cond */
+  /**
+   * CallBack object UIDs.
+   */
+  const uint32 CBO_INTERFACE_WAIT = 1; /**< IWait interface */
+  /** @endcond */
+
+  /** @cond */
+  /**
+   * Error codes
+   */
+  error ERROR_APP_SUSPENDED;                /**< App suspended/terminated, cannot receive commands */
+  error ERROR_APP_BLOCKED_ON_LISTENER;      /**< Deprecated, will not be returned */
+  error ERROR_APP_UNLOADED;                 /**< App has been unloaded */
+  error ERROR_APP_IN_USE;                   /**< App busy processing another command */
+  error ERROR_NOT_SUPPORTED;                /**< App or commonlib doesn't support this feature */
+  error ERROR_CBO_UNKNOWN;                  /**< Unknown callback object */
+  error ERROR_APP_UNLOAD_NOT_ALLOWED;       /**< App cannot be unloaded*/
+  error ERROR_APP_DISCONNECTED;             /**< App disconnected, cannot receive commands */
+  error ERROR_USER_DISCONNECT_REJECTED;     /**< Trusted Application user code rejected disconnect request */
+  error ERROR_STILL_RUNNING;                /**< Trusted Application still running cannot be restarted*/
+  error ERROR_APP_RESTART_FAILED;           /**< Trusted Application restart failed*/
+
+  /** @endcond */
+
+  /**
+   * @addtogroup IAppController
+   * @{
+   */
+
+  /**
+    Opens a session with the trusted application.
+
+    This method is part of the GP interface for the TA, and should not be directly used (internal to GP framework)
+
+    The caller/implementer (depending on parameter type) manually marshals the
+    content of four input/output buffers.
+
+    @param[in]  cancelCode         Optional code to use for cancellations.
+    @param[in]  connectionMethod   What CA identity credentials to use.
+    @param[in]  connectionData     Optional connection group identifier.
+    @param[in]  paramTypes         Parameter types, 1 byte per parameter.
+    @param[in]  exParamTypes       Extended information for parameters, 1 byte per parameter.
+    @param[in]  i1                 First input buffer.
+    @param[in]  i2                 Second input buffer.
+    @param[in]  i3                 Third input buffer.
+    @param[in]  i4                 Fourth input buffer.
+    @param[out] o1                 First output buffer.
+    @param[out] o2                 Second output buffer.
+    @param[out] o3                 Third output buffer.
+    @param[out] o4                 Fourth output buffer.
+    @param[in]  imem1              First optional memory region.
+    @param[in]  imem2              Second optional memory region.
+    @param[in]  imem3              Third optional memory region.
+    @param[in]  imem4              Fourth optional memory region.
+    @param[out] memrefOutSz1       Desired output size for memref 1, if larger than size provided.
+    @param[out] memrefOutSz2       Desired output size for memref 2, if larger than size provided.
+    @param[out] memrefOutSz3       Desired output size for memref 3, if larger than size provided.
+    @param[out] memrefOutSz4       Desired output size for memref 4, if larger than size provided.
+    @param[out] session            Newly opened session.
+    @param[out] retValue           GP return value.
+    @param[out] retOrigin          Where the GP return value originated.
+
+    @return  Object_OK if successful.
+   */
+  method openSession(in uint32 cancelCode,
+                     in uint32 connectionMethod,
+                     in uint32 connectionData,
+                     in uint32 paramTypes,
+                     in uint32 exParamTypes,
+                     in buffer i1,
+                     in buffer i2,
+                     in buffer i3,
+                     in buffer i4,
+                     out buffer o1,
+                     out buffer o2,
+                     out buffer o3,
+                     out buffer o4,
+                     in interface imem1,
+                     in interface imem2,
+                     in interface imem3,
+                     in interface imem4,
+                     out uint32 memrefOutSz1,
+                     out uint32 memrefOutSz2,
+                     out uint32 memrefOutSz3,
+                     out uint32 memrefOutSz4,
+                     out interface session,
+                     out uint32 retValue,
+                     out uint32 retOrigin);
+
+  /**
+    Unloads the trusted application.
+
+    This function fails if the application is currently busy. The caller is
+    expected to try again at a later time.
+
+    @return  Object_OK if successful.
+   */
+  method unload();
+
+  /**
+    Gets the object implementing app-provided functionalities.
+
+    @param[out] obj          Returned object.
+
+    @return  Object_OK on success.
+   */
+  method getAppObject(out interface obj);
+
+  /**
+    Installs a CallBack Object provided by the client.
+
+    @param[in] uid           UID of service class to register.
+    @param[in] obj           Object implementing the interface.
+
+    @return  Object_OK on success.
+   */
+  method installCBO(in uint32 uid, in interface obj);
+
+  /**
+    Disconnect client from the trusted application.
+
+    This method removes the client connection to the app while leaving the app
+    loaded. After a successful disconnect, the only methods allowed on the
+    IAppController object are retain and release. After a successful disconnect,
+    a new IAppController object can be obtained for the app by calling
+    IAppLoader_connect.
+
+    Fails if the trusted application rejects the disconnect request.
+
+    @return  Object_OK if successful.
+   */
+  method disconnect();
+
+  /**
+    Restart the TA.
+    Only a TA that has not been unloaded can be restarted.
+    @return  Object_OK if successful.
+   **/
+  method restart();
+  /** @} */ /* end_addtogroup IAppController */
+};

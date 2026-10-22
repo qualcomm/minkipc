@@ -1,0 +1,18 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+/**
+* @addtogroup CAppLoader
+* @{
+  Class CAppLoader implements \link IAppLoader \endlink interface.
+
+ The class ID `AppLoader` is not included in the default privilege set. It needs to be added to the
+  privileges section in the metadata to allow the TA to use the CAppLoader class.
+*/
+
+// This class provides an interface to load Secure Applications in QSEE
+//
+
+const uint32 CAppLoader_UID = 3;
+
+/** @} */
