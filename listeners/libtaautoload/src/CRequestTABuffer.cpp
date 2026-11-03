@@ -18,6 +18,11 @@ static const size_t HYPHEN_LEN(4);
 static const size_t NULLCHAR_LEN(1);
 static const size_t STRING_MULTIPLIER(2);
 
+/* TA binaries path on device, set at build time from the TA_DIR CMake option */
+#ifndef TA_PATH
+#error "TA_PATH is not defined: set the TA binaries path with -DTA_DIR=<path>"
+#endif
+
 /**
  * @brief Parse the device compatible string for possible device names.
  *
@@ -86,47 +91,34 @@ static string readCompatibleString()
 static CRequestTABuffer *getCRequestTABuffer()
 {
   CRequestTABuffer * requestTABuff = new CRequestTABuffer();
-  for (int i = 0; i < TA_PATH_LIST_SIZE; i++)
+  string taPath = TA_PATH;
+  /* append / in case not present at the end */
+  if('/' != taPath.back())
   {
-    string taPaths = ta_path_list[i];
-    /* append / in case not present at the end */
-    if('/' != taPaths.at(taPaths.length() - 1))
-    {
-      taPaths = taPaths + string("/");
-    }
-
-    if (taPaths.find("qtee-tas") != std::string::npos)
-    {
-      string updatedTaPath;
-      string raw = readCompatibleString();
-      if (raw.empty())
-      {
-        MSGE("Could not read device compatible string!\n");
-        goto out;
-      }
-
-      auto vec = parseCompatibleList(raw);
-      if (vec.empty())
-      {
-        MSGE("No device names found in compatible!\n");
-        goto out;
-      }
-
-      for (const auto& entry : vec)
-      {
-        updatedTaPath = taPaths + entry + string("/");
-        requestTABuff->searchLocations.push_back(updatedTaPath);
-        MSGD("Path %s\n", updatedTaPath.c_str());
-      }
-    }
-    else
-    {
-      requestTABuff->searchLocations.push_back(taPaths);
-      MSGD("Path %s\n", taPaths.c_str());
-    }
+    taPath = taPath + string("/");
   }
 
-out:
+  string raw = readCompatibleString();
+  if (raw.empty())
+  {
+    MSGE("Could not read device compatible string!\n");
+    return requestTABuff;
+  }
+
+  auto vec = parseCompatibleList(raw);
+  if (vec.empty())
+  {
+    MSGE("No device names found in compatible!\n");
+    return requestTABuff;
+  }
+
+  for (const auto& entry : vec)
+  {
+    string updatedTaPath = taPath + entry + string("/");
+    requestTABuff->searchLocations.push_back(updatedTaPath);
+    MSGD("Path %s\n", updatedTaPath.c_str());
+  }
+
   return requestTABuff;
 }
 
