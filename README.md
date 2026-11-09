@@ -69,6 +69,12 @@ sudo apt-get install libcbor-dev:arm64
 ## Tests
 List of available tests for each module are available in the module's README file.
 
+## Trusted Applications (ta/)
+
+The prebuilt Trusted Applications (TAs) currently shipped under the [ta/](ta/) directory are being moved to the
+[qtee-tas](https://github.com/qualcomm/qtee-tas) GitHub project. The `ta/` directory in this repository will be
+deprecated soon; see [ta/DEPRECATED.md](ta/DEPRECATED.md) for details.
+
 ## Contributions
 
 Thanks for your interest in contributing to MinkIPC! Please read our [Contributions Page](CONTRIBUTING.md) for more information on contributing features or bug fixes. We look forward to your participation!
