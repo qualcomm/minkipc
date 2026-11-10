@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: BSD-3-Clause-Clear
 [Unit]
 Description=SFS Configuration Service
+Documentation=https://github.com/qualcomm/minkipc/blob/main/docs/systemd-services.md#sfsconfig-service
 SourcePath=@CMAKE_INSTALL_FULL_LIBEXECDIR@/sfs_config
 After=@PERSIST_MOUNT_UNIT@
 Wants=@PERSIST_MOUNT_UNIT@
