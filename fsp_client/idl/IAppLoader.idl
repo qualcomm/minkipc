@@ -1,0 +1,89 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause-Clear
+
+include "IAppController.idl"
+
+/** @cond */
+interface IAppLoader {
+/** @endcond */
+
+  /**
+   * @addtogroup IAppLoader
+   * @{
+   */
+
+  /*
+   * Error codes
+   */
+  /** @cond */
+  error ERROR_INVALID_BUFFER;                     /**< Buffer is invalid */
+  error ERROR_PIL_ROLLBACK_FAILURE;               /**< TA loading failed due to rollback protection */
+  error ERROR_ELF_SIGNATURE_ERROR;                /**< Error in ELF or signature validation */
+  error ERROR_METADATA_INVALID;                   /**< Invalid metadata */
+  error ERROR_MAX_NUM_APPS;                       /**< Max number of supported apps reached */
+  error ERROR_NO_NAME_IN_METADATA;                /**< Missing name in app metadata */
+  error ERROR_ALREADY_LOADED;                     /**< Already loaded by another client */
+  error ERROR_EMBEDDED_IMAGE_NOT_FOUND;           /**< No such embedded image with name */
+  error ERROR_TZ_HEAP_MALLOC_FAILURE;             /**< TA loading failed due to TZ heap exhaustion */
+  error ERROR_TA_APP_REGION_MALLOC_FAILURE;       /**< TA loading failed due to TA app region exhaustion */
+  error ERROR_CLIENT_CRED_PARSING_FAILURE;        /**< Failed parsing the client Credentials*/
+  error ERROR_APP_UNTRUSTED_CLIENT;               /**< Untrusted Client connection to TA*/
+  error ERROR_APP_NOT_LOADED;                     /**< No loaded TA with distinguished name */
+  error ERROR_APP_MAX_CLIENT_CONNECTIONS;         /**< Max number of app client connections reached */
+  error ERROR_APP_BLACKLISTED;                    /**< Blacklisted app cannot be loaded */
+  error ERROR_APP_ARCH_NOT_SUPPORTED;             /**< TA Architecture not supported in EL0 */
+  error ERROR_VM_NOT_WHITELISTED_TO_CONNECT_TA;   /**< Invoking VM is not whitelisted to connect to requested TA */
+  /** @endcond */
+
+  /**
+    Loads a trusted application.
+    The application ELF binary is passed as a buffer.
+
+    @param[in]  appElf         Buffer containing ELF image.
+    @param[out] appController  \link IAppController \endlink to access the trusted application.
+
+    @return  Object_OK if successful.
+   */
+  method loadFromBuffer(in buffer appElf,
+                        out IAppController appController);
+
+  /**
+    Loads a trusted application.
+    The application ELF binary is passed as an IMemRegion object.
+
+    @param[in]  appElf         Region containing ELF image.
+    @param[out] appController  \link IAppController \endlink to access the trusted application.
+
+    @return  Object_OK if successful.
+   */
+  method loadFromRegion(in interface appElf,
+                        out IAppController appController);
+
+  /** @cond */
+  /**
+    Loads a trusted application embedded within the QTEE mbn image.
+
+    @param[in]  appName        Application distinguished name string to be loaded.
+    @param[out] appController  \link IAppController \endlink to access the trusted application.
+
+    @return  Object_OK if successful.
+   */
+  method loadEmbedded(in buffer appName,
+                      out IAppController appController);
+  /** @endcond */
+
+  /**
+    Connect to a loaded trusted application.
+    The trusted application with the distinguished name appName must be
+    already loaded.
+
+    @param[in]  appName        Application distinguished name string.
+    @param[out] appController  \link IAppController \endlink to access the trusted application.
+
+    @return  Object_OK if successful.
+   */
+  method connect(in buffer appName, out IAppController appController);
+
+  /** @} */ /* end_addtogroup IAppLoader */
+
+};
