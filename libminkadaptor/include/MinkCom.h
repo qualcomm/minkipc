@@ -4,6 +4,12 @@
 #ifndef _MINKCOM_H_
 #define _MINKCOM_H_
 
+#if defined(__GNUC__) || defined(__clang__)
+#define MINKADAPTOR_API __attribute__((visibility("default")))
+#else
+#define MINKADAPTOR_API
+#endif
+
 #include "object.h"
 
 #ifdef __cplusplus
@@ -18,7 +24,7 @@ extern "C" {
  * @return Object_OK on success.
  *         Object_ERROR on failure.
  */
-int MinkCom_getRootEnvObject(Object *obj);
+MINKADAPTOR_API int MinkCom_getRootEnvObject(Object *obj);
 
 /**
  * @brief Get a ClientEnv object that is registered with QTEE with client's
@@ -30,7 +36,7 @@ int MinkCom_getRootEnvObject(Object *obj);
  * @return Object_OK on success.
  *         Object_ERROR_* on failure.
 */
-int MinkCom_getClientEnvObject(Object root, Object *obj);
+MINKADAPTOR_API int MinkCom_getClientEnvObject(Object root, Object *obj);
 
 /**
  * @brief Get a ClientEnv object that is registered with QTEE with client's
@@ -43,7 +49,8 @@ int MinkCom_getClientEnvObject(Object root, Object *obj);
  * @return Object_OK on success.
  *         Object_ERROR_* on failure.
 */
-int MinkCom_getClientEnvObjectWithCreds(Object root, Object creds, Object *obj);
+MINKADAPTOR_API int MinkCom_getClientEnvObjectWithCreds(Object root, Object creds,
+							Object *obj);
 
 /**
  * @brief Get a Memory object representing physically contiguous memory shared
@@ -56,7 +63,8 @@ int MinkCom_getClientEnvObjectWithCreds(Object root, Object creds, Object *obj);
  * @return Object_OK on success.
  *         Object_ERROR_* on failure.
 */
-int MinkCom_getMemoryObject(Object rootObj, size_t size, Object *memObj);
+MINKADAPTOR_API int MinkCom_getMemoryObject(Object rootObj, size_t size,
+					    Object *memObj);
 
 /**
  * @brief Get the virtual address and size of the memory represented by a
@@ -69,7 +77,8 @@ int MinkCom_getMemoryObject(Object rootObj, size_t size, Object *memObj);
  * @return Object_OK on success.
  *         Object_ERROR_* on failure.
 */
-int MinkCom_getMemoryObjectInfo(Object memObj, void **address, size_t *size);
+MINKADAPTOR_API int MinkCom_getMemoryObjectInfo(Object memObj, void **address,
+						size_t *size);
 
 #ifdef __cplusplus
 }

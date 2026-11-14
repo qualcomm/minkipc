@@ -79,6 +79,8 @@ configure_file(minkteec.pc.in minkteec.pc @ONLY)
 set_target_properties(minkteec PROPERTIES
 	VERSION ${PROJECT_VERSION}
 	SOVERSION ${PROJECT_VERSION_MAJOR}
+	C_VISIBILITY_PRESET hidden
+	LINK_FLAGS "-Wl,--exclude-libs,ALL"
 )
 
 # ''Headers and dependencies''.

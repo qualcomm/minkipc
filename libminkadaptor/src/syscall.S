@@ -4,6 +4,9 @@
       .global    mink_recv_ioctl
       .global    mink_recv_skip
       .global    mink_recv_svc
+      .hidden    mink_recv_ioctl
+      .hidden    mink_recv_skip
+      .hidden    mink_recv_svc
       .p2align   4
 mink_recv_ioctl:
       ldr     w4, [x3]

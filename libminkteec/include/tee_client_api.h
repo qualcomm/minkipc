@@ -4,6 +4,12 @@
 #ifndef __TEE_CLIENT_API_H_
 #define __TEE_CLIENT_API_H_
 
+#if defined(__GNUC__) || defined(__clang__)
+#define MINKTEEC_API __attribute__((visibility("default")))
+#else
+#define MINKTEEC_API
+#endif
+
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
@@ -457,7 +463,8 @@ extern "C" {
  *       platform-provided locking mechanisms to ensure that this case
  *       does not occur
  */
-TEEC_Result TEEC_InitializeContext(const char *name, TEEC_Context *context);
+MINKTEEC_API TEEC_Result TEEC_InitializeContext(const char *name,
+					      TEEC_Context *context);
 /**
  * @brief
  *
@@ -481,7 +488,7 @@ TEEC_Result TEEC_InitializeContext(const char *name, TEEC_Context *context);
  *    Attempting to finalize the same TEE Context structure more than once,
  *    without an intervening call to TEEC_InitalizeContext.
  */
-void TEEC_FinalizeContext(TEEC_Context *context);
+MINKTEEC_API void TEEC_FinalizeContext(TEEC_Context *context);
 
 
 /**
@@ -527,7 +534,7 @@ void TEEC_FinalizeContext(TEEC_Context *context);
  *       must use platform -provided locking mechanisms to ensure that this case
  *       does not occur.
  */
-TEEC_Result TEEC_RegisterSharedMemory(TEEC_Context *context,
+MINKTEEC_API TEEC_Result TEEC_RegisterSharedMemory(TEEC_Context *context,
 				      TEEC_SharedMemory *sharedMem);
 
 
@@ -582,7 +589,7 @@ TEEC_Result TEEC_RegisterSharedMemory(TEEC_Context *context,
  *       must use platform -provided locking mechanisms to ensure that this case
  *       does not occur.
  */
-TEEC_Result TEEC_AllocateSharedMemory(TEEC_Context *context,
+MINKTEEC_API TEEC_Result TEEC_AllocateSharedMemory(TEEC_Context *context,
 				      TEEC_SharedMemory *sharedMem);
 
 /**
@@ -615,7 +622,7 @@ TEEC_Result TEEC_AllocateSharedMemory(TEEC_Context *context,
  *       must use platform -provided locking mechanisms to ensure that this case
  *       does not occur.
  */
-void TEEC_ReleaseSharedMemory(TEEC_SharedMemory *sharedMem);
+MINKTEEC_API void TEEC_ReleaseSharedMemory(TEEC_SharedMemory *sharedMem);
 
 
 /**
@@ -705,7 +712,7 @@ void TEEC_ReleaseSharedMemory(TEEC_SharedMemory *sharedMem);
  *      not occur.
  *    Using the same Operation structure for multiple concurrent operations.
  */
-TEEC_Result TEEC_OpenSession( TEEC_Context *context,
+MINKTEEC_API TEEC_Result TEEC_OpenSession( TEEC_Context *context,
 			      TEEC_Session *session,
 			      const TEEC_UUID *destination,
 			      uint32_t connectionMethod,
@@ -731,7 +738,7 @@ TEEC_Result TEEC_OpenSession( TEEC_Context *context,
  *    Attempting to close the same Session concurrently from multiple threads.
  *    Attempting to close the same Session more than once.
  */
-void TEEC_CloseSession(TEEC_Session *session);
+MINKTEEC_API void TEEC_CloseSession(TEEC_Session *session);
 
 
 /**
@@ -800,7 +807,7 @@ void TEEC_CloseSession(TEEC_Session *session);
  *    Using the same operation structure concurrently for multiple operations,
  *       whether open Session operations or Command invocations.
  */
-TEEC_Result TEEC_InvokeCommand( TEEC_Session *session,
+MINKTEEC_API TEEC_Result TEEC_InvokeCommand( TEEC_Session *session,
 				uint32_t commandID,
 				TEEC_Operation *operation,
 				uint32_t *returnOrigin);
@@ -837,7 +844,7 @@ TEEC_Result TEEC_InvokeCommand( TEEC_Session *session,
  *    Attempting to close the same Session concurrently from multiple threads.
  *    Attempting to close the same Session more than once.
  */
-void TEEC_RequestCancellation(TEEC_Operation *operation);
+MINKTEEC_API void TEEC_RequestCancellation(TEEC_Operation *operation);
 
 #ifdef __cplusplus
 }
