@@ -66,6 +66,12 @@ sudo apt-get update
 sudo apt-get install libcbor-dev:arm64
 ```
 
+## systemd Services
+
+See the [systemd service guide](docs/systemd-services.md) for installation,
+configuration, startup, and troubleshooting of the QTEE supplicant and storage
+configuration services.
+
 ## Tests
 List of available tests for each module are available in the module's README file.
 
