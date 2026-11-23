@@ -60,5 +60,5 @@ set_target_properties(fsservice PROPERTIES
 # ''Install targets''.
 
 install(TARGETS fsservice
-	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+	LIBRARY DESTINATION "${PLUGIN_DIR}"
 )

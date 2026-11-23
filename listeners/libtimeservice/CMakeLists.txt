@@ -49,5 +49,5 @@ target_link_libraries(timeservice
 # ''Install targets''.
 
 install(TARGETS timeservice
-	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+	LIBRARY DESTINATION "${PLUGIN_DIR}"
 )
