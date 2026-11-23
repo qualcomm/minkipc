@@ -40,5 +40,5 @@ target_link_libraries(rpmbservice
 )
 
 install(TARGETS rpmbservice
-	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+	LIBRARY DESTINATION "${PLUGIN_DIR}"
 )

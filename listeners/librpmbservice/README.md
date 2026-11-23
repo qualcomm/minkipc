@@ -160,7 +160,9 @@ add_definitions(-DRPMB_DEBUG_CONSOLE_OUTPUT)
 ```
 
 The installed artefact is `librpmbservice.so.1.0.0` with the symlinks
-`librpmbservice.so.1` and `librpmbservice.so`.
+`librpmbservice.so.1` and `librpmbservice.so`, in the
+`${libdir}/qtee-supplicant/` plugin directory (`PLUGIN_DIR`) that
+`qtee_supplicant` loads it from.
 
 ## Runtime requirements
 

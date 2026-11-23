@@ -83,5 +83,5 @@ target_compile_definitions(taautoload
 # ''Install targets''.
 
 install(TARGETS taautoload
-	LIBRARY DESTINATION "${PLUGIN_INSTALL_DIR}"
+	LIBRARY DESTINATION "${PLUGIN_DIR}"
 )

@@ -24,10 +24,8 @@ if(BUILD_TA_AUTOLOAD_LISTENER)
 		PRIVATE -DTA_AUTOLOAD_LISTENER)
 endif()
 
-if(PLUGIN_DIR)
-	target_compile_definitions(${PROJECT_NAME}
-		PRIVATE PLUGIN_PATH="${PLUGIN_DIR}/")
-endif()
+target_compile_definitions(${PROJECT_NAME}
+	PRIVATE PLUGIN_PATH="${PLUGIN_DIR}/")
 
 if(BUILD_FS_LISTENER)
 	target_compile_definitions(${PROJECT_NAME}
