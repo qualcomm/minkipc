@@ -1,0 +1,12 @@
+// Copyright (c) Qualcomm Technologies, Inc. and/or its subsidiaries.
+// SPDX-License-Identifier: BSD-3-Clause
+
+/**
+ * @addtogroup CFSPApp
+ * @{
+ *   Class CFSPApp implements \link IFSPApp \endlink interface.
+ */
+
+const uint32 CFSPApp_UID = 449;
+
+/** @} */
