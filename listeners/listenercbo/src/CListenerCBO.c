@@ -188,10 +188,11 @@ static int32_t CListenerCBO_wait(ListenerCBO *me)
 	/* Create a condition variable for each client that calls into
 	 * wait in the QTEE for specific listener.
 	 */
-	wait_item *w_item = (wait_item *)malloc(sizeof(wait_item));
+	wait_item *w_item = (wait_item *)calloc(1, sizeof(wait_item));
 	if (!w_item)
 		return Object_ERROR_KMEM;
 
+	QNode_construct(&w_item->qn);
 	pthread_cond_init(&w_item->wait_cond, NULL);
 
 	/* Client waiting for the listener is pushed into a list */
